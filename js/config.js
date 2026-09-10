@@ -71,24 +71,24 @@ export const CONFIG = {
     },
 
     {
-      id: "space",
-      name: "우주",
+      id: "20years",
+      name: "희망의 과학싹잔치 20주년",
       src: "./assets/backgrounds/static/20years.png",
-      thumbnail: "./assets/backgrounds/static/bg-space.webp"
+      thumbnail: "./assets/backgrounds/static/20years.png"
     },
 
     {
-      id: "lab",
-      name: "과학실",
-      src: "./assets/backgrounds/static/bg-lab.webp",
-      thumbnail: "./assets/backgrounds/static/bg-lab.webp"
+      id: "bell",
+      name: "전화기 발명 이야기",
+      src: "./assets/backgrounds/static/bell.png",
+      thumbnail: "./assets/backgrounds/static/bell.png"
     },
 
     {
-      id: "festival",
-      name: "과학축제",
-      src: "./assets/backgrounds/static/bg-festival.webp",
-      thumbnail: "./assets/backgrounds/static/bg-festival.webp"
+      id: "drama",
+      name: "과학연극",
+      src: "./assets/backgrounds/static/20ybell.png",
+      thumbnail: "./assets/backgrounds/static/20ybell.png"
     }
 
   ]
