@@ -1,23 +1,29 @@
 /* =========================================================
-   기본 설정
+   기본 초기화
    ========================================================= */
 
 * {
   box-sizing: border-box;
 }
 
-html,
-body {
+html {
   margin: 0;
   padding: 0;
 
   width: 100%;
   min-height: 100%;
 
-  background: #ffffff;
+  background: #f5f6f8;
 }
 
 body {
+  margin: 0;
+  padding: 0;
+
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+
   font-family:
     -apple-system,
     BlinkMacSystemFont,
@@ -26,26 +32,26 @@ body {
     Arial,
     sans-serif;
 
-  color: #111827;
+  background: #f5f6f8;
+  color: #1f2937;
 
-  /* 스마트폰에서 버튼 연속 터치 시 확대를 줄입니다. */
+  /* 스마트폰에서 버튼 연속 터치 시 확대 방지 */
   touch-action: manipulation;
 }
 
 
 /* =========================================================
    전체 앱
-   - 스마트폰 세로 화면 우선
    ========================================================= */
 
 .app {
   width: 100%;
 
   /*
-    스마트폰에서는 화면 전체 너비를 사용하고,
-    태블릿/PC에서는 지나치게 넓어지지 않도록 제한합니다.
+    스마트폰 중심이지만
+    태블릿/PC에서는 너무 넓어지지 않도록 제한
   */
-  max-width: 480px;
+  max-width: 560px;
 
   min-height: 100vh;
   min-height: 100dvh;
@@ -53,8 +59,8 @@ body {
   margin: 0 auto;
 
   padding:
-    calc(14px + env(safe-area-inset-top))
-    16px
+    calc(12px + env(safe-area-inset-top))
+    14px
     calc(24px + env(safe-area-inset-bottom));
 
   background: #ffffff;
@@ -62,62 +68,37 @@ body {
 
 
 /* =========================================================
-   상단 로고
+   로고
    ========================================================= */
 
-.header {
+.top-header {
+  width: 100%;
+
   display: flex;
   justify-content: center;
   align-items: center;
 
-  padding-bottom: 16px;
+  padding: 4px 0 14px;
 }
 
-.logo {
+.main-logo {
   display: block;
 
   width: auto;
-  max-width: 70%;
-  max-height: 56px;
+  max-width: 68%;
+  height: auto;
+
+  max-height: 74px;
 
   object-fit: contain;
 }
 
 
 /* =========================================================
-   공통 섹션
+   카메라
    ========================================================= */
 
-.section,
-.capture-area,
-.result-section {
-  margin-top: 18px;
-}
-
-.section-title {
-  margin: 0;
-
-  font-size: 18px;
-  font-weight: 800;
-
-  text-align: left;
-}
-
-.section-desc {
-  margin: 6px 0 12px;
-
-  font-size: 14px;
-  line-height: 1.45;
-
-  color: #4b5563;
-}
-
-
-/* =========================================================
-   카메라 영역
-   ========================================================= */
-
-.camera-area {
+.camera-section {
   width: 100%;
 }
 
@@ -127,16 +108,19 @@ body {
   width: 100%;
 
   /*
-    카메라 화면을 항상 4:3으로 유지합니다.
+    핵심:
+    카메라 화면을 항상 4:3 비율로 유지
   */
   aspect-ratio: 4 / 3;
 
   overflow: hidden;
 
-  border: 1px solid #e5e7eb;
-  border-radius: 16px;
+  border-radius: 20px;
 
   background: #111827;
+
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
 
@@ -151,13 +135,15 @@ body {
   height: 100%;
 
   /*
-    카메라 원본 비율이 16:9여도
-    4:3 화면을 빈 공간 없이 채우도록 중앙 크롭됩니다.
+    카메라 원본 비율이 16:9인 경우에도
+    4:3 영역을 빈 공간 없이 채움
   */
   object-fit: cover;
 
   /*
-    전면 카메라는 일반 셀카 앱처럼 거울 형태로 표시합니다.
+    전면 카메라는 거울처럼 보이도록 구성.
+    촬영 결과도 동일하게 처리하므로
+    미리보기와 결과의 방향이 일치함.
   */
   transform: scaleX(-1);
 
@@ -165,14 +151,12 @@ body {
 }
 
 
-/* 선택된 배경/프레임 */
+/* 선택된 배경 / 프레임 */
 
 .background-overlay {
   position: absolute;
 
   inset: 0;
-
-  z-index: 2;
 
   width: 100%;
   height: 100%;
@@ -181,11 +165,17 @@ body {
 
   pointer-events: none;
 
+  /*
+    카메라보다 위,
+    메시지보다는 아래
+  */
+  z-index: 2;
+
   display: none;
 }
 
 
-/* 카메라 준비 및 오류 메시지 */
+/* 카메라 준비 메시지 */
 
 .camera-message {
   position: absolute;
@@ -198,17 +188,18 @@ body {
   justify-content: center;
   align-items: center;
 
-  padding: 20px;
+  padding: 24px;
 
   text-align: center;
 
   font-size: 15px;
   font-weight: 600;
+
   line-height: 1.5;
 
   color: #ffffff;
 
-  background: rgba(17, 24, 39, 0.65);
+  background: rgba(17, 24, 39, 0.72);
 }
 
 .camera-message.hidden {
@@ -216,7 +207,7 @@ body {
 }
 
 
-/* 촬영 플래시 */
+/* 촬영 순간 플래시 */
 
 .camera-flash {
   position: absolute;
@@ -233,16 +224,17 @@ body {
 }
 
 .camera-flash.active {
-  animation: flashEffect 180ms ease-out;
+  animation: cameraFlash 180ms ease-out;
 }
 
-@keyframes flashEffect {
+@keyframes cameraFlash {
+
   0% {
     opacity: 0;
   }
 
   40% {
-    opacity: 0.8;
+    opacity: 0.85;
   }
 
   100% {
@@ -252,9 +244,27 @@ body {
 
 
 /* =========================================================
-   배경 선택
+   배경 선택 영역
    ========================================================= */
 
+.selector-section {
+  padding-top: 22px;
+}
+
+.selector-title {
+  margin: 0 0 12px;
+
+  font-size: 17px;
+  font-weight: 700;
+
+  text-align: center;
+}
+
+
+/*
+  배경 개수가 늘어날 경우
+  좌우 스크롤이 가능하도록 구성
+*/
 .background-list {
   display: flex;
 
@@ -264,7 +274,7 @@ body {
 
   overflow-x: auto;
 
-  padding: 2px 0 6px;
+  padding: 3px 3px 10px;
 
   scrollbar-width: none;
 
@@ -279,42 +289,42 @@ body {
 /* 개별 배경 선택 버튼 */
 
 .background-item {
-  flex: 0 0 88px;
+  flex: 0 0 104px;
 
   padding: 0;
 
-  overflow: hidden;
-
-  border: 2px solid #e5e7eb;
+  border: 3px solid transparent;
   border-radius: 14px;
 
-  background: #ffffff;
+  overflow: hidden;
+
+  background: #eef0f3;
 
   cursor: pointer;
+
+  transition:
+    border-color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.background-item:active {
+  transform: scale(0.97);
 }
 
 .background-item.selected {
   border-color: #2563eb;
 }
 
-.background-item:focus-visible {
-  outline: 3px solid rgba(37, 99, 235, 0.35);
-  outline-offset: 2px;
-}
-
 
 /* 썸네일 */
 
-.background-thumbnail,
-.background-none {
+.background-thumbnail {
   display: block;
 
   width: 100%;
 
   aspect-ratio: 4 / 3;
-}
 
-.background-thumbnail {
   object-fit: cover;
 }
 
@@ -326,12 +336,27 @@ body {
   justify-content: center;
   align-items: center;
 
-  background: #f3f4f6;
+  width: 100%;
 
-  color: #374151;
+  aspect-ratio: 4 / 3;
+
+  background:
+    linear-gradient(
+      135deg,
+      #f8fafc 25%,
+      #e2e8f0 25%,
+      #e2e8f0 50%,
+      #f8fafc 50%,
+      #f8fafc 75%,
+      #e2e8f0 75%
+    );
+
+  background-size: 18px 18px;
 
   font-size: 14px;
   font-weight: 700;
+
+  color: #475569;
 }
 
 
@@ -339,71 +364,108 @@ body {
    촬영 버튼
    ========================================================= */
 
-.capture-area {
+.capture-section {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
+
+  padding: 16px 0 8px;
 }
 
 .capture-button {
-  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 
-  min-height: 56px;
+  width: 76px;
+  height: 76px;
 
-  border: none;
-  border-radius: 14px;
+  padding: 5px;
 
-  background: #2563eb;
-  color: #ffffff;
+  border: 4px solid #111827;
+  border-radius: 50%;
 
-  font-family: inherit;
-  font-size: 18px;
-  font-weight: 800;
+  background: #ffffff;
 
   cursor: pointer;
 }
 
 .capture-button:disabled {
-  opacity: 0.45;
+  opacity: 0.35;
   cursor: not-allowed;
 }
 
 .capture-button:not(:disabled):active {
-  transform: scale(0.98);
+  transform: scale(0.94);
 }
 
-.capture-button:focus-visible {
-  outline: 3px solid rgba(37, 99, 235, 0.35);
-  outline-offset: 3px;
+.capture-button-inner {
+  display: block;
+
+  width: 58px;
+  height: 58px;
+
+  border-radius: 50%;
+
+  background: #111827;
+}
+
+.capture-label {
+  margin: 7px 0 0;
+
+  font-size: 14px;
+  font-weight: 700;
+
+  color: #374151;
 }
 
 
 /* =========================================================
-   결과 영역
+   결과 화면
    ========================================================= */
 
-.result-image-box {
-  margin-top: 12px;
+.result-section {
+  margin-top: 18px;
+
+  padding-top: 20px;
+
+  border-top: 1px solid #e5e7eb;
+}
+
+.result-title {
+  margin: 0 0 14px;
+
+  text-align: center;
+
+  font-size: 19px;
+  font-weight: 800;
+}
+
+.result-image-wrapper {
+  width: 100%;
 
   overflow: hidden;
 
-  border: 1px solid #e5e7eb;
-  border-radius: 16px;
+  border-radius: 18px;
 
-  background: #f9fafb;
+  background: #e5e7eb;
+
+  box-shadow:
+    0 6px 20px rgba(0, 0, 0, 0.08);
 }
 
 .result-image {
   display: block;
 
   width: 100%;
+  height: auto;
 
   aspect-ratio: 4 / 3;
 
   object-fit: cover;
 }
 
-.result-actions {
+.result-buttons {
   display: grid;
 
   grid-template-columns: 1fr 1fr;
@@ -413,47 +475,42 @@ body {
   margin-top: 14px;
 }
 
-.main-button,
-.sub-button {
-  min-height: 52px;
+.primary-button,
+.secondary-button {
+  min-height: 50px;
 
-  border-radius: 14px;
+  border-radius: 13px;
 
   font-family: inherit;
-  font-size: 16px;
+
+  font-size: 15px;
   font-weight: 700;
 
   cursor: pointer;
 }
 
-.main-button {
+.primary-button {
   border: none;
 
   background: #2563eb;
   color: #ffffff;
 }
 
-.sub-button {
+.secondary-button {
   border: 1px solid #d1d5db;
 
   background: #ffffff;
-  color: #111827;
+  color: #1f2937;
 }
 
-.main-button:active,
-.sub-button:active {
+.primary-button:active,
+.secondary-button:active {
   transform: scale(0.98);
-}
-
-.main-button:focus-visible,
-.sub-button:focus-visible {
-  outline: 3px solid rgba(37, 99, 235, 0.35);
-  outline-offset: 3px;
 }
 
 
 /* =========================================================
-   유틸리티
+   기타
    ========================================================= */
 
 .hidden {
@@ -462,8 +519,8 @@ body {
 
 .hidden-canvas {
   /*
-    Canvas는 화면에 표시하지 않고
-    촬영 결과 합성에만 사용합니다.
+    Canvas는 화면에 표시할 필요가 없으며
+    촬영 합성용으로만 사용
   */
   position: fixed;
 
@@ -473,44 +530,46 @@ body {
 
 
 /* =========================================================
-   작은 스마트폰 대응
+   아주 작은 스마트폰 대응
    ========================================================= */
 
-@media (max-width: 360px) {
+@media (max-width: 370px) {
 
   .app {
-    padding-left: 12px;
-    padding-right: 12px;
+    padding-left: 10px;
+    padding-right: 10px;
   }
 
   .background-item {
-    flex-basis: 82px;
-  }
-
-  .section-title {
-    font-size: 17px;
+    flex-basis: 90px;
   }
 
   .capture-button {
-    font-size: 17px;
+    width: 70px;
+    height: 70px;
   }
 
+  .capture-button-inner {
+    width: 52px;
+    height: 52px;
+  }
 }
 
 
 /* =========================================================
-   모션 감소 접근성 설정
+   태블릿 / PC
    ========================================================= */
 
-@media (prefers-reduced-motion: reduce) {
+@media (min-width: 700px) {
 
-  *,
-  *::before,
-  *::after {
-    scroll-behavior: auto !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+  body {
+    padding: 24px 0;
   }
 
+  .app {
+    border-radius: 24px;
+
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.08);
+  }
 }
