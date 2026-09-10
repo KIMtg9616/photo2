@@ -1,67 +1,46 @@
 /* ============================================================
    app.js
    ------------------------------------------------------------
-   전체 웹사이트 기능을 연결하는 메인 JavaScript 파일
+   전체 웹사이트 기능 연결
 
-   주요 기능
+   현재 기능
    1. 카메라 실행
-   2. 배경 선택
+   2. 정적 배경 선택
    3. 사진 촬영
-   4. 촬영 결과 표시
-   5. PNG 저장
-   6. 다시 찍기
-   7. 전면 ↔ 후면 카메라 전환
+   4. PNG 저장
+   5. 다시 찍기
+   6. 전면 ↔ 후면 카메라 전환
+   7. 선택 모드 순환
+      배경 → 캐릭터 → 움직임 → AR → 배경
    ============================================================ */
 
-
-/* ============================================================
-   카메라 기능 불러오기
-   ============================================================ */
 
 import {
+  CONFIG
+} from "./config.js";
 
+
+import {
   startCamera,
-
   switchCamera,
-
   getCurrentFacingMode
-
 } from "./camera.js";
 
 
-
-/* ============================================================
-   배경 선택 기능 불러오기
-   ============================================================ */
-
 import {
-
   BackgroundManager
-
 } from "./backgrounds.js";
 
 
-
-/* ============================================================
-   촬영 및 저장 기능 불러오기
-   ============================================================ */
-
 import {
-
   capturePhoto,
-
   downloadPhoto
-
 } from "./capture.js";
 
 
-
 /* ============================================================
-   HTML 요소 가져오기
+   HTML 요소
    ============================================================ */
-
-
-/* 실시간 카메라 video */
 
 const videoElement =
   document.getElementById(
@@ -69,17 +48,11 @@ const videoElement =
   );
 
 
-
-/* 카메라 상태 메시지 */
-
 const cameraMessage =
   document.getElementById(
     "cameraMessage"
   );
 
-
-
-/* 선택한 배경 이미지 */
 
 const backgroundOverlay =
   document.getElementById(
@@ -87,17 +60,17 @@ const backgroundOverlay =
   );
 
 
-
-/* 배경 선택 목록 */
-
 const backgroundList =
   document.getElementById(
     "backgroundList"
   );
 
 
+const selectorTitle =
+  document.getElementById(
+    "selectorTitle"
+  );
 
-/* 촬영 버튼 */
 
 const captureButton =
   document.getElementById(
@@ -105,25 +78,32 @@ const captureButton =
   );
 
 
-
-/* ============================================================
-   새로 추가된 카메라 전환 버튼
-
-   index.html의
-
-   id="switchCameraButton"
-
-   과 연결됩니다.
-   ============================================================ */
-
 const switchCameraButton =
   document.getElementById(
     "switchCameraButton"
   );
 
 
+/*
+  새로 추가된 왼쪽 기능 모드 버튼
+*/
+const modeSwitchButton =
+  document.getElementById(
+    "modeSwitchButton"
+  );
 
-/* 실제 PNG 생성용 Canvas */
+
+const modeSwitchIcon =
+  document.getElementById(
+    "modeSwitchIcon"
+  );
+
+
+const modeSwitchLabel =
+  document.getElementById(
+    "modeSwitchLabel"
+  );
+
 
 const captureCanvas =
   document.getElementById(
@@ -131,17 +111,11 @@ const captureCanvas =
   );
 
 
-
-/* 촬영 플래시 */
-
 const cameraFlash =
   document.getElementById(
     "cameraFlash"
   );
 
-
-
-/* 촬영 결과 영역 */
 
 const resultSection =
   document.getElementById(
@@ -149,17 +123,11 @@ const resultSection =
   );
 
 
-
-/* 촬영 결과 이미지 */
-
 const resultImage =
   document.getElementById(
     "resultImage"
   );
 
-
-
-/* 다시 찍기 버튼 */
 
 const retryButton =
   document.getElementById(
@@ -167,33 +135,26 @@ const retryButton =
   );
 
 
-
-/* PNG 저장 버튼 */
-
 const downloadButton =
   document.getElementById(
     "downloadButton"
   );
 
 
-
 /* ============================================================
-   배경 관리자 생성
+   선택 관리자
    ============================================================ */
 
 const backgroundManager =
   new BackgroundManager(
-
     backgroundList,
-
-    backgroundOverlay
-
+    backgroundOverlay,
+    selectorTitle
   );
 
 
-
 /* ============================================================
-   현재 촬영된 사진 데이터
+   현재 촬영 결과
    ============================================================ */
 
 let currentPhotoBlob =
@@ -204,6 +165,260 @@ let currentPhotoUrl =
   null;
 
 
+/* ============================================================
+   선택 모드 상태
+   ============================================================ */
+
+let currentModeIndex =
+  0;
+
+
+/*
+  기능 모드별 아이콘
+
+  외부 이미지 파일을 추가하지 않고
+  SVG를 코드 내부에서 사용합니다.
+*/
+const MODE_ICONS = {
+
+  /*
+    배경: 사진/풍경
+  */
+  background: `
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <rect
+        x="3"
+        y="4"
+        width="18"
+        height="16"
+        rx="2"
+      ></rect>
+
+      <circle
+        cx="8.2"
+        cy="9"
+        r="1.6"
+      ></circle>
+
+      <path
+        d="M4.5 17l4.6-4.6 3.1 3.1 2.4-2.4 4.9 4.9"
+      ></path>
+    </svg>
+  `,
+
+
+  /*
+    캐릭터: 얼굴/사람
+  */
+  character: `
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <circle
+        cx="12"
+        cy="8"
+        r="3.2"
+      ></circle>
+
+      <path
+        d="M5.5 19c.8-3.8 3-5.8 6.5-5.8s5.7 2 6.5 5.8"
+      ></path>
+
+      <path
+        d="M18.2 4.8l.6 1.2 1.3.2-.9.9.2 1.3-1.2-.6-1.2.6.2-1.3-.9-.9 1.3-.2z"
+      ></path>
+    </svg>
+  `,
+
+
+  /*
+    움직임: 재생 + 움직임 선
+  */
+  motion: `
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <rect
+        x="5"
+        y="4"
+        width="14"
+        height="16"
+        rx="3"
+      ></rect>
+
+      <path
+        d="M10 9l5 3-5 3z"
+      ></path>
+
+      <path
+        d="M2.5 8h1.5"
+      ></path>
+
+      <path
+        d="M2 12h2"
+      ></path>
+
+      <path
+        d="M2.5 16h1.5"
+      ></path>
+    </svg>
+  `,
+
+
+  /*
+    AR: 얼굴 스캔
+  */
+  ar: `
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <path
+        d="M8 3H5a2 2 0 0 0-2 2v3"
+      ></path>
+
+      <path
+        d="M16 3h3a2 2 0 0 1 2 2v3"
+      ></path>
+
+      <path
+        d="M21 16v3a2 2 0 0 1-2 2h-3"
+      ></path>
+
+      <path
+        d="M8 21H5a2 2 0 0 1-2-2v-3"
+      ></path>
+
+      <circle
+        cx="9"
+        cy="10"
+        r=".7"
+      ></circle>
+
+      <circle
+        cx="15"
+        cy="10"
+        r=".7"
+      ></circle>
+
+      <path
+        d="M8.5 14.5c1 1.1 2.1 1.6 3.5 1.6s2.5-.5 3.5-1.6"
+      ></path>
+    </svg>
+  `
+
+};
+
+
+/* ============================================================
+   선택 모드 UI 적용
+   ============================================================ */
+
+function updateModeUI() {
+
+  const modes =
+    CONFIG.selectionModes;
+
+
+  if (
+    !Array.isArray(modes) ||
+    modes.length === 0
+  ) {
+
+    return;
+
+  }
+
+
+  const mode =
+    modes[currentModeIndex];
+
+
+  /*
+    왼쪽 버튼 아래 텍스트 변경
+  */
+  modeSwitchLabel.textContent =
+    mode.buttonLabel;
+
+
+  /*
+    모드에 맞는 아이콘 변경
+  */
+  modeSwitchIcon.innerHTML =
+    MODE_ICONS[mode.id] ||
+    MODE_ICONS.background;
+
+
+  /*
+    접근성 설명도 현재 모드 이름으로 변경
+  */
+  modeSwitchButton.setAttribute(
+    "aria-label",
+    `선택 기능 변경, 현재 ${mode.buttonLabel}`
+  );
+
+
+  modeSwitchButton.setAttribute(
+    "title",
+    `현재 ${mode.buttonLabel} 선택`
+  );
+
+
+  /*
+    카메라와 촬영 버튼 사이의 선택창을
+    현재 모드에 맞게 다시 그립니다.
+  */
+  backgroundManager.setMode(
+    mode.id
+  );
+
+}
+
+
+/* ============================================================
+   왼쪽 기능 모드 버튼
+
+   배경
+   → 캐릭터
+   → 움직임
+   → AR
+   → 배경
+
+   순서로 반복합니다.
+   ============================================================ */
+
+modeSwitchButton.addEventListener(
+  "click",
+  () => {
+
+    const modeCount =
+      CONFIG.selectionModes.length;
+
+
+    if (modeCount === 0) {
+
+      return;
+
+    }
+
+
+    currentModeIndex =
+      (
+        currentModeIndex + 1
+      ) %
+      modeCount;
+
+
+    updateModeUI();
+
+  }
+);
+
 
 /* ============================================================
    웹페이지 초기화
@@ -211,27 +426,20 @@ let currentPhotoUrl =
 
 async function initialize() {
 
-
-  /* ----------------------------------------------------------
-     1. 배경 선택 UI 생성
-     ---------------------------------------------------------- */
-
-  backgroundManager.render();
-
+  /*
+    첫 화면:
+    배경 선택 모드
+  */
+  updateModeUI();
 
 
-  /* ----------------------------------------------------------
-     2. 브라우저 카메라 API 지원 확인
-     ---------------------------------------------------------- */
-
+  /*
+    브라우저 카메라 API 지원 확인
+  */
   if (
-
     !navigator.mediaDevices ||
-
     !navigator.mediaDevices.getUserMedia
-
   ) {
-
 
     cameraMessage.textContent =
       "이 브라우저에서는 카메라 기능을 사용할 수 없습니다.";
@@ -242,36 +450,20 @@ async function initialize() {
   }
 
 
-
-  /* ----------------------------------------------------------
-     3. 사용자에게 카메라 권한 안내
-     ---------------------------------------------------------- */
-
   cameraMessage.textContent =
     "카메라 권한을 허용해 주세요.";
 
 
-
-  /* ----------------------------------------------------------
-     4. 카메라 실행
-
-     기본값은 config.js의 facingMode를 사용합니다.
-
-     현재 설정:
-     user = 전면 카메라
-     ---------------------------------------------------------- */
-
+  /*
+    기본 카메라 실행
+  */
   const cameraResult =
     await startCamera(
       videoElement
     );
 
 
-
-  /* 카메라 실행 실패 */
-
   if (!cameraResult.success) {
-
 
     handleCameraError(
       cameraResult.error
@@ -283,46 +475,29 @@ async function initialize() {
   }
 
 
-
-  /* ----------------------------------------------------------
-     5. 실제 영상 데이터 준비 대기
-     ---------------------------------------------------------- */
-
+  /*
+    실제 영상 데이터 준비 대기
+  */
   await waitForVideoReady();
 
 
-
-  /* ----------------------------------------------------------
-     6. 현재 카메라 방향에 맞게
-        미리보기 좌우 반전 상태 설정
-     ---------------------------------------------------------- */
-
+  /*
+    전면/후면에 따른 미리보기 방향 적용
+  */
   updateCameraPreviewDirection();
 
-
-
-  /* ----------------------------------------------------------
-     7. 카메라 준비 메시지 숨김
-     ---------------------------------------------------------- */
 
   cameraMessage.classList.add(
     "hidden"
   );
 
 
-
-  /* ----------------------------------------------------------
-     8. 촬영 버튼 활성화
-     ---------------------------------------------------------- */
-
+  /*
+    카메라 준비 완료 후 촬영/전환 활성화
+  */
   captureButton.disabled =
     false;
 
-
-
-  /* ----------------------------------------------------------
-     9. 카메라 전환 버튼 활성화
-     ---------------------------------------------------------- */
 
   if (switchCameraButton) {
 
@@ -334,65 +509,38 @@ async function initialize() {
 }
 
 
-
 /* ============================================================
    카메라 영상 준비 대기
    ============================================================ */
 
 function waitForVideoReady() {
 
-
   return new Promise(
     resolve => {
 
-
-      /* --------------------------------------------------------
-         이미 카메라 영상이 준비되어 있다면
-         바로 다음 단계로 이동
-         -------------------------------------------------------- */
-
       if (
-
         videoElement.readyState >= 2 &&
-
         videoElement.videoWidth > 0 &&
-
         videoElement.videoHeight > 0
-
       ) {
 
-
         resolve();
-
 
         return;
 
       }
 
 
-
-      /* --------------------------------------------------------
-         아직 준비되지 않았다면
-         loadeddata 이벤트가 발생할 때까지 대기
-         -------------------------------------------------------- */
-
       videoElement.addEventListener(
-
         "loadeddata",
-
         () => {
-
 
           resolve();
 
         },
-
         {
-
           once: true
-
         }
-
       );
 
     }
@@ -401,48 +549,22 @@ function waitForVideoReady() {
 }
 
 
-
 /* ============================================================
-   카메라 미리보기 방향 조절
-   ============================================================
-
-   전면 카메라:
-   일반 셀카처럼 거울 모드
-
-   후면 카메라:
-   좌우 반전 없음
-
-   style.css의
-
-   #cameraVideo.rear-camera
-
-   와 연결됩니다.
+   전면/후면 미리보기 방향
    ============================================================ */
 
 function updateCameraPreviewDirection() {
-
 
   const facingMode =
     getCurrentFacingMode();
 
 
-
-  /* ----------------------------------------------------------
-     후면 카메라이면 rear-camera 클래스 추가
-
-     전면 카메라이면 rear-camera 클래스 제거
-     ---------------------------------------------------------- */
-
   videoElement.classList.toggle(
-
     "rear-camera",
-
     facingMode === "environment"
-
   );
 
 }
-
 
 
 /* ============================================================
@@ -451,31 +573,20 @@ function updateCameraPreviewDirection() {
 
 function handleCameraError(error) {
 
-
   console.error(
     "카메라 오류:",
     error
   );
 
 
-
   let message =
     "카메라를 실행할 수 없습니다.";
 
 
-
-  /* ----------------------------------------------------------
-     카메라 권한 거부
-     ---------------------------------------------------------- */
-
   if (
-
     error.name === "NotAllowedError" ||
-
     error.name === "PermissionDeniedError"
-
   ) {
-
 
     message =
       "카메라 권한이 허용되지 않았습니다.\n" +
@@ -483,38 +594,19 @@ function handleCameraError(error) {
 
   }
 
-
-
-  /* ----------------------------------------------------------
-     사용 가능한 카메라 없음
-     ---------------------------------------------------------- */
-
   else if (
-
     error.name === "NotFoundError" ||
-
     error.name === "DevicesNotFoundError"
-
   ) {
-
 
     message =
       "사용 가능한 카메라를 찾을 수 없습니다.";
 
   }
 
-
-
-  /* ----------------------------------------------------------
-     다른 앱에서 카메라를 사용하고 있는 경우
-     ---------------------------------------------------------- */
-
   else if (
-
     error.name === "NotReadableError"
-
   ) {
-
 
     message =
       "카메라를 사용할 수 없습니다.\n" +
@@ -522,18 +614,9 @@ function handleCameraError(error) {
 
   }
 
-
-
-  /* ----------------------------------------------------------
-     카메라 제약 조건 문제
-     ---------------------------------------------------------- */
-
   else if (
-
     error.name === "OverconstrainedError"
-
   ) {
-
 
     message =
       "현재 기기에서 요청한 카메라 설정을 사용할 수 없습니다.";
@@ -541,10 +624,8 @@ function handleCameraError(error) {
   }
 
 
-
   cameraMessage.innerText =
     message;
-
 
 
   cameraMessage.classList.remove(
@@ -554,32 +635,19 @@ function handleCameraError(error) {
 }
 
 
-
 /* ============================================================
-   촬영 플래시 효과
+   촬영 플래시
    ============================================================ */
 
 function playFlash() {
-
-
-  /* 기존 애니메이션 제거 */
 
   cameraFlash.classList.remove(
     "active"
   );
 
 
-
-  /* ----------------------------------------------------------
-     같은 CSS 애니메이션을 반복 실행하기 위해
-     브라우저 reflow를 강제로 발생시킵니다.
-     ---------------------------------------------------------- */
-
   void cameraFlash.offsetWidth;
 
-
-
-  /* 플래시 실행 */
 
   cameraFlash.classList.add(
     "active"
@@ -588,34 +656,15 @@ function playFlash() {
 }
 
 
-
 /* ============================================================
-   카메라 전환 버튼
-
-   전면 → 후면
-   후면 → 전면
-
-   순서로 전환됩니다.
+   카메라 전환
    ============================================================ */
 
 if (switchCameraButton) {
 
-
   switchCameraButton.addEventListener(
-
     "click",
-
     async () => {
-
-
-      /* --------------------------------------------------------
-         카메라를 바꾸는 동안
-
-         - 촬영 버튼
-         - 전환 버튼
-
-         을 비활성화하여 중복 입력을 막습니다.
-         -------------------------------------------------------- */
 
       captureButton.disabled =
         true;
@@ -624,11 +673,6 @@ if (switchCameraButton) {
       switchCameraButton.disabled =
         true;
 
-
-
-      /* --------------------------------------------------------
-         사용자에게 전환 중임을 표시
-         -------------------------------------------------------- */
 
       cameraMessage.textContent =
         "카메라를 전환하고 있습니다.";
@@ -639,13 +683,7 @@ if (switchCameraButton) {
       );
 
 
-
       try {
-
-
-        /* ------------------------------------------------------
-           실제 전면 ↔ 후면 카메라 전환
-           ------------------------------------------------------ */
 
         const result =
           await switchCamera(
@@ -653,11 +691,7 @@ if (switchCameraButton) {
           );
 
 
-
-        /* 전환 실패 */
-
         if (!result.success) {
-
 
           throw (
             result.error ||
@@ -669,27 +703,11 @@ if (switchCameraButton) {
         }
 
 
-
-        /* ------------------------------------------------------
-           새 카메라 영상 준비 대기
-           ------------------------------------------------------ */
-
         await waitForVideoReady();
 
 
-
-        /* ------------------------------------------------------
-           전면 / 후면에 맞게
-           화면 좌우 반전 상태 변경
-           ------------------------------------------------------ */
-
         updateCameraPreviewDirection();
 
-
-
-        /* ------------------------------------------------------
-           상태 메시지 숨기기
-           ------------------------------------------------------ */
 
         cameraMessage.classList.add(
           "hidden"
@@ -697,9 +715,7 @@ if (switchCameraButton) {
 
       }
 
-
       catch (error) {
-
 
         console.error(
           "카메라 전환 오류:",
@@ -707,44 +723,24 @@ if (switchCameraButton) {
         );
 
 
-
-        /* ------------------------------------------------------
-           카메라 전환이 불가능한 경우
-           ------------------------------------------------------ */
-
         cameraMessage.textContent =
           "다른 카메라로 전환할 수 없습니다.";
 
 
-
-        /* ------------------------------------------------------
-           약 1.5초 후 메시지 제거
-           ------------------------------------------------------ */
-
         window.setTimeout(
-
           () => {
-
 
             cameraMessage.classList.add(
               "hidden"
             );
 
           },
-
           1500
-
         );
 
       }
 
-
       finally {
-
-
-        /* ------------------------------------------------------
-           버튼 다시 활성화
-           ------------------------------------------------------ */
 
         captureButton.disabled =
           false;
@@ -756,37 +752,22 @@ if (switchCameraButton) {
       }
 
     }
-
   );
 
 }
 
 
-
 /* ============================================================
-   촬영 버튼
+   촬영
    ============================================================ */
 
 captureButton.addEventListener(
-
   "click",
-
   async () => {
-
-
-    /* ----------------------------------------------------------
-       촬영 중 연속 클릭 방지
-       ---------------------------------------------------------- */
 
     captureButton.disabled =
       true;
 
-
-
-    /*
-      촬영하는 순간에는
-      카메라 전환도 잠시 막습니다.
-    */
 
     if (switchCameraButton) {
 
@@ -796,53 +777,36 @@ captureButton.addEventListener(
     }
 
 
+    /*
+      촬영 처리 중 선택 모드 버튼도 잠시 잠급니다.
+    */
+    modeSwitchButton.disabled =
+      true;
+
 
     try {
-
-
-      /* 촬영 플래시 */
 
       playFlash();
 
 
-
-      /* --------------------------------------------------------
-         현재 선택된 배경 가져오기
-         -------------------------------------------------------- */
-
+      /*
+        현재 1차 촬영에서는 선택된 정적 배경만
+        capture.js로 전달합니다.
+      */
       const selectedBackground =
         backgroundManager
           .getSelectedBackground();
 
 
-
-      /* --------------------------------------------------------
-         실제 사진 생성
-
-         camera + background
-         → Canvas
-         → PNG Blob
-         -------------------------------------------------------- */
-
       const photoBlob =
         await capturePhoto(
-
           videoElement,
-
           captureCanvas,
-
           selectedBackground
-
         );
 
 
-
-      /* --------------------------------------------------------
-         이전 촬영 결과 URL이 있다면 메모리 해제
-         -------------------------------------------------------- */
-
       if (currentPhotoUrl) {
-
 
         URL.revokeObjectURL(
           currentPhotoUrl
@@ -851,17 +815,9 @@ captureButton.addEventListener(
       }
 
 
-
-      /* 새 촬영 데이터 저장 */
-
       currentPhotoBlob =
         photoBlob;
 
-
-
-      /* --------------------------------------------------------
-         Blob을 화면에 표시할 임시 URL로 변환
-         -------------------------------------------------------- */
 
       currentPhotoUrl =
         URL.createObjectURL(
@@ -869,39 +825,23 @@ captureButton.addEventListener(
         );
 
 
-
-      /* 결과 이미지 표시 */
-
       resultImage.src =
         currentPhotoUrl;
 
-
-
-      /* 결과 영역 표시 */
 
       resultSection.classList.remove(
         "hidden"
       );
 
 
-
-      /* --------------------------------------------------------
-         촬영 결과 영역으로 부드럽게 이동
-         -------------------------------------------------------- */
-
       resultSection.scrollIntoView({
-
         behavior: "smooth",
-
         block: "start"
-
       });
 
     }
 
-
     catch (error) {
-
 
       console.error(
         "촬영 오류:",
@@ -909,32 +849,21 @@ captureButton.addEventListener(
       );
 
 
-
       alert(
-
         "사진 촬영 중 오류가 발생했습니다.\n" +
-
         (
           error.message ||
           "다시 시도해 주세요."
         )
-
       );
 
     }
 
-
     finally {
-
-
-      /* 촬영 버튼 다시 활성화 */
 
       captureButton.disabled =
         false;
 
-
-
-      /* 카메라 전환 버튼 다시 활성화 */
 
       if (switchCameraButton) {
 
@@ -943,12 +872,14 @@ captureButton.addEventListener(
 
       }
 
+
+      modeSwitchButton.disabled =
+        false;
+
     }
 
   }
-
 );
-
 
 
 /* ============================================================
@@ -956,28 +887,15 @@ captureButton.addEventListener(
    ============================================================ */
 
 retryButton.addEventListener(
-
   "click",
-
   () => {
-
-
-    /* ----------------------------------------------------------
-       촬영 결과 화면 숨김
-       ---------------------------------------------------------- */
 
     resultSection.classList.add(
       "hidden"
     );
 
 
-
-    /* ----------------------------------------------------------
-       이전 Object URL 메모리 해제
-       ---------------------------------------------------------- */
-
     if (currentPhotoUrl) {
-
 
       URL.revokeObjectURL(
         currentPhotoUrl
@@ -990,57 +908,33 @@ retryButton.addEventListener(
     }
 
 
-
-    /* 촬영 Blob 초기화 */
-
     currentPhotoBlob =
       null;
 
-
-
-    /* 결과 이미지 제거 */
 
     resultImage.removeAttribute(
       "src"
     );
 
 
-
-    /* ----------------------------------------------------------
-       다시 카메라 상단으로 이동
-       ---------------------------------------------------------- */
-
     window.scrollTo({
-
       top: 0,
-
       behavior: "smooth"
-
     });
 
   }
-
 );
 
 
-
 /* ============================================================
-   PNG 저장 버튼
+   PNG 저장
    ============================================================ */
 
 downloadButton.addEventListener(
-
   "click",
-
   () => {
 
-
-    /* ----------------------------------------------------------
-       촬영된 사진이 없는 경우
-       ---------------------------------------------------------- */
-
     if (!currentPhotoBlob) {
-
 
       alert(
         "저장할 사진이 없습니다."
@@ -1052,19 +946,12 @@ downloadButton.addEventListener(
     }
 
 
-
-    /* ----------------------------------------------------------
-       capture.js의 다운로드 기능 실행
-       ---------------------------------------------------------- */
-
     downloadPhoto(
       currentPhotoBlob
     );
 
   }
-
 );
-
 
 
 /* ============================================================
