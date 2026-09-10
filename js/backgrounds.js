@@ -3,7 +3,7 @@ import { CONFIG } from "./config.js";
 
 /*
  ============================================================
- 정적 배경 선택 관리
+ 배경 선택 관리
  ============================================================
 */
 
@@ -23,8 +23,7 @@ export class BackgroundManager {
 
 
     /*
-      기본값:
-      config.js의 첫 번째 배경
+      기본 배경
     */
 
     this.selectedBackground =
@@ -32,7 +31,7 @@ export class BackgroundManager {
 
 
     /*
-      배경 선택 Toast
+      하단 선택 알림
     */
 
     this.toastElement =
@@ -40,10 +39,6 @@ export class BackgroundManager {
         "backgroundToast"
       );
 
-
-    /*
-      Toast 타이머
-    */
 
     this.toastTimer =
       null;
@@ -54,25 +49,17 @@ export class BackgroundManager {
 
   /*
  ============================================================
- 배경 선택 UI 생성
+ 배경 선택 메뉴 생성
  ============================================================
  */
 
   render() {
 
 
-    /*
-      기존 목록 초기화
-    */
-
     this.listElement.innerHTML =
       "";
 
 
-
-    /*
-      config.js에 등록된 모든 배경 생성
-    */
 
     CONFIG.backgrounds.forEach(
       (
@@ -82,9 +69,9 @@ export class BackgroundManager {
 
 
         /*
-         ========================================================
-         배경 버튼
-         ========================================================
+         --------------------------------------------------------
+         배경 선택 버튼
+         --------------------------------------------------------
         */
 
         const button =
@@ -106,8 +93,8 @@ export class BackgroundManager {
 
 
         /*
-          화면에는 제목을 표시하지 않지만
-          스크린리더에서는 배경 이름을 알 수 있습니다.
+          화면에는 제목을 쓰지 않지만
+          스크린리더는 배경명을 읽을 수 있습니다.
         */
 
         button.setAttribute(
@@ -116,9 +103,17 @@ export class BackgroundManager {
         );
 
 
+        button.setAttribute(
+          "aria-pressed",
+          index === 0
+            ? "true"
+            : "false"
+        );
+
+
 
         /*
-          첫 번째 배경 기본 선택
+          기본 선택 표시
         */
 
         if (index === 0) {
@@ -128,30 +123,14 @@ export class BackgroundManager {
             "selected"
           );
 
-
-          button.setAttribute(
-            "aria-pressed",
-            "true"
-          );
-
-        }
-
-        else {
-
-
-          button.setAttribute(
-            "aria-pressed",
-            "false"
-          );
-
         }
 
 
 
         /*
-         ========================================================
+         --------------------------------------------------------
          배경 없음
-         ========================================================
+         --------------------------------------------------------
         */
 
         if (!background.thumbnail) {
@@ -180,9 +159,12 @@ export class BackgroundManager {
 
 
         /*
-         ========================================================
-         이미지가 있는 배경
-         ========================================================
+         --------------------------------------------------------
+         썸네일 이미지
+         --------------------------------------------------------
+
+         이곳에서는 고해상도 src가 아니라
+         저해상도 thumbnail 파일만 불러옵니다.
         */
 
         else {
@@ -199,25 +181,24 @@ export class BackgroundManager {
 
 
           /*
-            원본 이미지를 그대로 사용합니다.
-
-            예:
-            1448×1086 PNG
-
-            하지만 CSS에서 화면 표시 크기를
-            104×78px로 제한합니다.
+            320×240 정도의 작은 WebP
           */
 
           image.src =
             background.thumbnail;
 
 
+          /*
+            버튼에 aria-label이 있으므로
+            이미지 alt는 빈 값으로 둡니다.
+          */
+
           image.alt =
             "";
 
 
           /*
-            화면 밖에 있는 이미지는 필요할 때 로딩합니다.
+            화면에 가까워졌을 때만 로딩
           */
 
           image.loading =
@@ -225,10 +206,8 @@ export class BackgroundManager {
 
 
           /*
-            이미지 디코딩을 비동기로 처리합니다.
-
-            큰 PNG 이미지 때문에
-            메인 UI가 잠깐 멈추는 현상을 줄이는 데 도움이 됩니다.
+            이미지 디코딩을 비동기로 수행하여
+            UI 멈춤을 줄입니다.
           */
 
           image.decoding =
@@ -236,42 +215,15 @@ export class BackgroundManager {
 
 
           /*
-            썸네일은 우선순위를 낮춥니다.
-
-            카메라 실행 등 핵심 기능을 먼저 처리할 수 있게 합니다.
-          */
-
-          try {
-
-            image.fetchPriority =
-              "low";
-
-          }
-
-          catch (error) {
-
-            /*
-              일부 구형 브라우저에서는
-              fetchPriority를 지원하지 않아도 문제가 없습니다.
-            */
-
-          }
-
-
-          /*
-            레이아웃 계산 전에 브라우저가
-            썸네일 비율을 알 수 있도록 힌트 제공
-
-            CSS 실제 표시 크기는
-            104×78px입니다.
+            썸네일의 논리적 화면 비율
           */
 
           image.width =
-            104;
+            320;
 
 
           image.height =
-            78;
+            240;
 
 
           /*
@@ -284,8 +236,7 @@ export class BackgroundManager {
 
 
           /*
-            이미지 로딩 실패 시
-            버튼 자체는 남겨두고 깨진 이미지 아이콘은 숨깁니다.
+            이미지 로딩 실패 처리
           */
 
           image.addEventListener(
@@ -316,9 +267,9 @@ export class BackgroundManager {
 
 
         /*
-         ========================================================
-         클릭
-         ========================================================
+         --------------------------------------------------------
+         배경 선택
+         --------------------------------------------------------
         */
 
         button.addEventListener(
@@ -340,10 +291,6 @@ export class BackgroundManager {
 
 
 
-        /*
-          목록에 추가
-        */
-
         this.listElement.appendChild(
           button
         );
@@ -358,7 +305,7 @@ export class BackgroundManager {
 
   /*
  ============================================================
- 실제 배경 선택
+ 배경 선택
  ============================================================
  */
 
@@ -368,17 +315,13 @@ export class BackgroundManager {
   ) {
 
 
-    /*
-      현재 선택 배경 저장
-    */
-
     this.selectedBackground =
       background;
 
 
 
     /*
-      기존 선택 상태 제거
+      기존 선택 상태 초기화
     */
 
     const buttons =
@@ -441,10 +384,6 @@ export class BackgroundManager {
         "none";
 
 
-      /*
-        하단 알림
-      */
-
       this.showToast(
         "배경을 사용하지 않습니다."
       );
@@ -458,13 +397,16 @@ export class BackgroundManager {
 
     /*
      ============================================================
-     선택된 원본 배경 표시
+     실제 고해상도 원본 로딩
+
+     ★ 중요
+
+     여기에서야 비로소
+     static 폴더의 고해상도 이미지를 불러옵니다.
+
+     사이트 처음 접속 시에는
+     이 이미지가 다운로드되지 않습니다.
      ============================================================
-
-     썸네일은 104×78px로 작게 표시하지만,
-     실제 카메라에는 원본 이미지를 그대로 사용합니다.
-
-     따라서 최종 촬영 품질은 낮아지지 않습니다.
     */
 
     this.overlayElement.src =
@@ -477,9 +419,7 @@ export class BackgroundManager {
 
 
     /*
-     ============================================================
-     배경 선택 알림
-     ============================================================
+      선택 이름 안내
     */
 
     this.showToast(
@@ -492,16 +432,12 @@ export class BackgroundManager {
 
   /*
  ============================================================
- 하단 Toast 알림
+ 배경 선택 Toast
  ============================================================
  */
 
   showToast(message) {
 
-
-    /*
-      Toast HTML이 없다면 종료
-    */
 
     if (!this.toastElement) {
 
@@ -512,7 +448,7 @@ export class BackgroundManager {
 
 
     /*
-      이전 Toast 타이머 초기화
+      기존 알림 타이머 제거
     */
 
     if (this.toastTimer) {
@@ -531,7 +467,7 @@ export class BackgroundManager {
 
 
     /*
-      기존 표시 상태 초기화
+      기존 표시 초기화
     */
 
     this.toastElement.classList.remove(
@@ -539,26 +475,23 @@ export class BackgroundManager {
     );
 
 
-
     /*
-      새 메시지
+      문구 입력
     */
 
     this.toastElement.textContent =
       message;
 
 
-
     /*
-      같은 애니메이션을 반복하기 위한 reflow
+      애니메이션 재실행을 위한 reflow
     */
 
     void this.toastElement.offsetWidth;
 
 
-
     /*
-      Toast 표시
+      표시
     */
 
     this.toastElement.classList.add(
@@ -568,7 +501,7 @@ export class BackgroundManager {
 
 
     /*
-      1.5초 후 자동으로 숨김
+      1.5초 후 사라짐
     */
 
     this.toastTimer =
@@ -598,7 +531,7 @@ export class BackgroundManager {
 
   /*
  ============================================================
- 현재 선택된 배경 반환
+ 현재 선택된 배경 정보
  ============================================================
  */
 
