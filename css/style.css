@@ -6,6 +6,7 @@
   box-sizing: border-box;
 }
 
+
 html {
   margin: 0;
   padding: 0;
@@ -16,11 +17,13 @@ html {
   background: #f5f6f8;
 }
 
+
 body {
   margin: 0;
   padding: 0;
 
   width: 100%;
+
   min-height: 100vh;
   min-height: 100dvh;
 
@@ -33,11 +36,16 @@ body {
     sans-serif;
 
   background: #f5f6f8;
+
   color: #1f2937;
 
-  /* 스마트폰에서 버튼 연속 터치 시 확대 방지 */
+  /*
+    스마트폰에서 버튼을 연속으로 누를 때
+    불필요한 확대 동작을 줄입니다.
+  */
   touch-action: manipulation;
 }
+
 
 
 /* =========================================================
@@ -45,11 +53,14 @@ body {
    ========================================================= */
 
 .app {
+
   width: 100%;
 
   /*
-    스마트폰 중심이지만
-    태블릿/PC에서는 너무 넓어지지 않도록 제한
+    스마트폰 중심 디자인
+
+    스마트폰에서는 화면 폭 전체를 사용하고
+    태블릿 / PC에서는 560px까지 제한합니다.
   */
   max-width: 560px;
 
@@ -58,189 +69,323 @@ body {
 
   margin: 0 auto;
 
+
+  /*
+    iPhone Safe Area 대응
+  */
   padding:
     calc(12px + env(safe-area-inset-top))
     14px
     calc(24px + env(safe-area-inset-bottom));
 
+
   background: #ffffff;
+
 }
 
 
+
 /* =========================================================
-   로고
+   상단 로고 영역
    ========================================================= */
 
 .top-header {
+
   width: 100%;
 
   display: flex;
+
   justify-content: center;
   align-items: center;
 
+
+  /*
+    위아래 공간은 기존과 거의 동일하게 유지합니다.
+  */
   padding: 4px 0 14px;
+
+
+  /*
+    로고가 좌우로 넓어져도
+    앱 영역 밖으로 빠져나가지 않도록 합니다.
+  */
+  overflow: hidden;
+
 }
 
-.main-logo {
-  display: block;
-
-  width: auto;
-  max-width: 68%;
-  height: auto;
-
-  max-height: 74px;
-
-  object-fit: contain;
-}
 
 
 /* =========================================================
-   카메라
+   상단 메인 로고
+
+   ★ 이번 수정의 핵심 부분입니다.
+
+   기존:
+   max-width: 68%
+
+   변경:
+   width: 88%
+
+   즉 세로 공간은 크게 늘리지 않으면서
+   좌우 방향 사용 면적을 크게 확대합니다.
+   ========================================================= */
+
+.main-logo {
+
+  display: block;
+
+
+  /*
+    스마트폰 화면에서
+    좌우 폭을 약 88%까지 사용합니다.
+  */
+  width: 88%;
+
+  max-width: 490px;
+
+
+  /*
+    세로 영역은 지나치게 커지지 않도록 제한
+  */
+  height: 74px;
+
+
+  /*
+    이미지가 영역 안에 들어오도록 처리
+
+    로고 원본 비율은 유지합니다.
+  */
+  object-fit: contain;
+
+
+  /*
+    혹시 이미지 자체에 여백이 있어도
+    가운데 배치되도록 설정
+  */
+  object-position: center;
+
+}
+
+
+
+/* =========================================================
+   카메라 영역
    ========================================================= */
 
 .camera-section {
+
   width: 100%;
+
 }
 
+
 .camera-stage {
+
   position: relative;
 
   width: 100%;
 
+
   /*
-    핵심:
-    카메라 화면을 항상 4:3 비율로 유지
+    카메라 화면은 항상 4:3
   */
   aspect-ratio: 4 / 3;
+
 
   overflow: hidden;
 
   border-radius: 20px;
 
+
   background: #111827;
 
+
   box-shadow:
-    0 8px 24px rgba(0, 0, 0, 0.12);
+    0 8px 24px
+    rgba(0, 0, 0, 0.12);
+
 }
 
 
-/* 실시간 카메라 */
+
+/* =========================================================
+   실시간 카메라
+   ========================================================= */
 
 #cameraVideo {
+
   position: absolute;
 
   inset: 0;
 
+
   width: 100%;
   height: 100%;
 
+
   /*
-    카메라 원본 비율이 16:9인 경우에도
-    4:3 영역을 빈 공간 없이 채움
+    16:9 카메라 입력도
+    4:3 화면을 꽉 채우도록 처리
   */
   object-fit: cover;
 
+
   /*
-    전면 카메라는 거울처럼 보이도록 구성.
-    촬영 결과도 동일하게 처리하므로
-    미리보기와 결과의 방향이 일치함.
+    전면 카메라 거울 효과
   */
   transform: scaleX(-1);
 
+
   background: #111827;
+
 }
 
 
-/* 선택된 배경 / 프레임 */
+
+/* =========================================================
+   배경 이미지 / 프레임
+   ========================================================= */
 
 .background-overlay {
+
   position: absolute;
 
   inset: 0;
+
 
   width: 100%;
   height: 100%;
 
+
   object-fit: cover;
+
 
   pointer-events: none;
 
+
   /*
-    카메라보다 위,
-    메시지보다는 아래
+    카메라보다 위에 표시
   */
   z-index: 2;
 
+
   display: none;
+
 }
 
 
-/* 카메라 준비 메시지 */
+
+/* =========================================================
+   카메라 준비 메시지
+   ========================================================= */
 
 .camera-message {
+
   position: absolute;
 
   inset: 0;
+
 
   z-index: 5;
 
+
   display: flex;
+
   justify-content: center;
   align-items: center;
 
+
   padding: 24px;
+
 
   text-align: center;
 
+
   font-size: 15px;
+
   font-weight: 600;
+
 
   line-height: 1.5;
 
+
   color: #ffffff;
 
-  background: rgba(17, 24, 39, 0.72);
+
+  background:
+    rgba(17, 24, 39, 0.72);
+
 }
+
 
 .camera-message.hidden {
+
   display: none;
+
 }
 
 
-/* 촬영 순간 플래시 */
+
+/* =========================================================
+   촬영 순간 플래시
+   ========================================================= */
 
 .camera-flash {
+
   position: absolute;
 
   inset: 0;
 
+
   z-index: 10;
+
 
   pointer-events: none;
 
+
   background: #ffffff;
 
+
   opacity: 0;
+
 }
 
+
 .camera-flash.active {
-  animation: cameraFlash 180ms ease-out;
+
+  animation:
+    cameraFlash
+    180ms
+    ease-out;
+
 }
+
+
 
 @keyframes cameraFlash {
 
   0% {
+
     opacity: 0;
+
   }
+
 
   40% {
+
     opacity: 0.85;
+
   }
 
+
   100% {
+
     opacity: 0;
+
   }
+
 }
+
 
 
 /* =========================================================
@@ -248,312 +393,598 @@ body {
    ========================================================= */
 
 .selector-section {
+
   padding-top: 22px;
+
 }
+
+
+
+/* 배경 선택 제목 */
 
 .selector-title {
-  margin: 0 0 12px;
+
+  margin:
+    0
+    0
+    12px;
+
 
   font-size: 17px;
+
   font-weight: 700;
 
+
   text-align: center;
+
 }
 
 
-/*
-  배경 개수가 늘어날 경우
-  좌우 스크롤이 가능하도록 구성
-*/
+
+/* =========================================================
+   배경 선택 목록
+
+   배경이 많아지면
+   스마트폰에서 좌우로 스크롤됩니다.
+   ========================================================= */
+
 .background-list {
+
   display: flex;
+
 
   gap: 10px;
 
+
   width: 100%;
+
 
   overflow-x: auto;
 
-  padding: 3px 3px 10px;
+
+  padding:
+    3px
+    3px
+    10px;
+
 
   scrollbar-width: none;
 
+
   -webkit-overflow-scrolling: touch;
+
 }
+
+
 
 .background-list::-webkit-scrollbar {
+
   display: none;
+
 }
 
 
-/* 개별 배경 선택 버튼 */
+
+/* =========================================================
+   개별 배경 버튼
+   ========================================================= */
 
 .background-item {
-  flex: 0 0 104px;
+
+  flex:
+    0
+    0
+    104px;
+
 
   padding: 0;
 
-  border: 3px solid transparent;
+
+  border:
+    3px
+    solid
+    transparent;
+
+
   border-radius: 14px;
+
 
   overflow: hidden;
 
+
   background: #eef0f3;
 
+
   cursor: pointer;
+
 
   transition:
     border-color 0.18s ease,
     transform 0.18s ease;
+
 }
+
+
 
 .background-item:active {
+
   transform: scale(0.97);
+
 }
+
+
 
 .background-item.selected {
+
   border-color: #2563eb;
+
 }
 
 
-/* 썸네일 */
+
+/* =========================================================
+   배경 썸네일
+   ========================================================= */
 
 .background-thumbnail {
+
   display: block;
+
 
   width: 100%;
 
+
+  /*
+    배경 이미지 역시 4:3
+  */
   aspect-ratio: 4 / 3;
 
+
   object-fit: cover;
+
 }
 
 
-/* 배경 없음 버튼 */
+
+/* =========================================================
+   배경 없음 버튼
+   ========================================================= */
 
 .background-none {
+
   display: flex;
+
   justify-content: center;
   align-items: center;
 
+
   width: 100%;
+
 
   aspect-ratio: 4 / 3;
 
+
   background:
+
     linear-gradient(
+
       135deg,
+
       #f8fafc 25%,
+
       #e2e8f0 25%,
+
       #e2e8f0 50%,
+
       #f8fafc 50%,
+
       #f8fafc 75%,
+
       #e2e8f0 75%
+
     );
 
-  background-size: 18px 18px;
+
+  background-size:
+    18px
+    18px;
+
 
   font-size: 14px;
+
   font-weight: 700;
 
+
   color: #475569;
+
 }
+
+
+
+/* =========================================================
+   촬영 영역
+   ========================================================= */
+
+.capture-section {
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+
+  padding:
+    16px
+    0
+    8px;
+
+}
+
 
 
 /* =========================================================
    촬영 버튼
    ========================================================= */
 
-.capture-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-
-  padding: 16px 0 8px;
-}
-
 .capture-button {
+
   display: flex;
+
   justify-content: center;
   align-items: center;
+
 
   width: 76px;
   height: 76px;
 
+
   padding: 5px;
 
-  border: 4px solid #111827;
+
+  border:
+    4px
+    solid
+    #111827;
+
+
   border-radius: 50%;
+
 
   background: #ffffff;
 
+
   cursor: pointer;
+
 }
+
+
 
 .capture-button:disabled {
+
   opacity: 0.35;
+
   cursor: not-allowed;
+
 }
+
+
 
 .capture-button:not(:disabled):active {
+
   transform: scale(0.94);
+
 }
 
+
+
+/* 촬영 버튼 내부 */
+
 .capture-button-inner {
+
   display: block;
+
 
   width: 58px;
   height: 58px;
 
+
   border-radius: 50%;
 
+
   background: #111827;
+
 }
+
+
+
+/* 촬영 텍스트 */
 
 .capture-label {
-  margin: 7px 0 0;
+
+  margin:
+    7px
+    0
+    0;
+
 
   font-size: 14px;
+
   font-weight: 700;
 
+
   color: #374151;
+
 }
+
 
 
 /* =========================================================
-   결과 화면
+   촬영 결과
    ========================================================= */
 
 .result-section {
+
   margin-top: 18px;
+
 
   padding-top: 20px;
 
-  border-top: 1px solid #e5e7eb;
+
+  border-top:
+    1px
+    solid
+    #e5e7eb;
+
 }
 
+
+
+/* 촬영 결과 제목 */
+
 .result-title {
-  margin: 0 0 14px;
+
+  margin:
+    0
+    0
+    14px;
+
 
   text-align: center;
 
+
   font-size: 19px;
+
   font-weight: 800;
+
 }
 
+
+
+/* =========================================================
+   촬영 결과 이미지 영역
+   ========================================================= */
+
 .result-image-wrapper {
+
   width: 100%;
+
 
   overflow: hidden;
 
+
   border-radius: 18px;
+
 
   background: #e5e7eb;
 
+
   box-shadow:
-    0 6px 20px rgba(0, 0, 0, 0.08);
+    0
+    6px
+    20px
+    rgba(0, 0, 0, 0.08);
+
 }
 
+
+
 .result-image {
+
   display: block;
 
+
   width: 100%;
+
   height: auto;
+
 
   aspect-ratio: 4 / 3;
 
+
   object-fit: cover;
+
 }
 
+
+
+/* =========================================================
+   결과 버튼
+   ========================================================= */
+
 .result-buttons {
+
   display: grid;
 
-  grid-template-columns: 1fr 1fr;
+
+  grid-template-columns:
+    1fr
+    1fr;
+
 
   gap: 10px;
 
+
   margin-top: 14px;
+
 }
+
+
 
 .primary-button,
 .secondary-button {
+
   min-height: 50px;
+
 
   border-radius: 13px;
 
+
   font-family: inherit;
 
+
   font-size: 15px;
+
   font-weight: 700;
 
+
   cursor: pointer;
+
 }
+
+
+
+/* PNG 저장 */
 
 .primary-button {
+
   border: none;
 
+
   background: #2563eb;
+
   color: #ffffff;
+
 }
+
+
+
+/* 다시 찍기 */
 
 .secondary-button {
-  border: 1px solid #d1d5db;
+
+  border:
+    1px
+    solid
+    #d1d5db;
+
 
   background: #ffffff;
+
   color: #1f2937;
+
 }
+
+
 
 .primary-button:active,
 .secondary-button:active {
+
   transform: scale(0.98);
+
 }
 
 
+
 /* =========================================================
-   기타
+   공통 숨김
    ========================================================= */
 
 .hidden {
+
   display: none !important;
+
 }
 
-.hidden-canvas {
-  /*
-    Canvas는 화면에 표시할 필요가 없으며
-    촬영 합성용으로만 사용
-  */
-  position: fixed;
-
-  left: -99999px;
-  top: -99999px;
-}
 
 
 /* =========================================================
-   아주 작은 스마트폰 대응
+   숨겨진 Canvas
+   ========================================================= */
+
+.hidden-canvas {
+
+  /*
+    화면에는 보이지 않고
+    촬영 이미지 합성에만 사용합니다.
+  */
+
+  position: fixed;
+
+
+  left: -99999px;
+
+  top: -99999px;
+
+}
+
+
+
+/* =========================================================
+   작은 스마트폰
    ========================================================= */
 
 @media (max-width: 370px) {
 
+
   .app {
+
     padding-left: 10px;
+
     padding-right: 10px;
+
   }
+
+
+  /*
+    작은 화면에서도 로고가
+    좌우 방향을 충분히 사용하도록 유지
+  */
+  .main-logo {
+
+    width: 90%;
+
+    height: 68px;
+
+  }
+
 
   .background-item {
+
     flex-basis: 90px;
+
   }
+
 
   .capture-button {
+
     width: 70px;
+
     height: 70px;
+
   }
 
+
   .capture-button-inner {
+
     width: 52px;
+
     height: 52px;
+
   }
+
 }
+
 
 
 /* =========================================================
@@ -562,14 +993,41 @@ body {
 
 @media (min-width: 700px) {
 
+
   body {
-    padding: 24px 0;
+
+    padding:
+      24px
+      0;
+
   }
+
 
   .app {
+
     border-radius: 24px;
 
+
     box-shadow:
-      0 8px 32px rgba(0, 0, 0, 0.08);
+      0
+      8px
+      32px
+      rgba(0, 0, 0, 0.08);
+
   }
+
+
+  /*
+    PC에서도 로고는 가로 방향으로 크게 표시
+  */
+  .main-logo {
+
+    width: 88%;
+
+    max-width: 490px;
+
+    height: 74px;
+
+  }
+
 }
