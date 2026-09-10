@@ -1,0 +1,516 @@
+/* =========================================================
+   기본 설정
+   ========================================================= */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+
+  width: 100%;
+  min-height: 100%;
+
+  background: #ffffff;
+}
+
+body {
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "Noto Sans KR",
+    Arial,
+    sans-serif;
+
+  color: #111827;
+
+  /* 스마트폰에서 버튼 연속 터치 시 확대를 줄입니다. */
+  touch-action: manipulation;
+}
+
+
+/* =========================================================
+   전체 앱
+   - 스마트폰 세로 화면 우선
+   ========================================================= */
+
+.app {
+  width: 100%;
+
+  /*
+    스마트폰에서는 화면 전체 너비를 사용하고,
+    태블릿/PC에서는 지나치게 넓어지지 않도록 제한합니다.
+  */
+  max-width: 480px;
+
+  min-height: 100vh;
+  min-height: 100dvh;
+
+  margin: 0 auto;
+
+  padding:
+    calc(14px + env(safe-area-inset-top))
+    16px
+    calc(24px + env(safe-area-inset-bottom));
+
+  background: #ffffff;
+}
+
+
+/* =========================================================
+   상단 로고
+   ========================================================= */
+
+.header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  padding-bottom: 16px;
+}
+
+.logo {
+  display: block;
+
+  width: auto;
+  max-width: 70%;
+  max-height: 56px;
+
+  object-fit: contain;
+}
+
+
+/* =========================================================
+   공통 섹션
+   ========================================================= */
+
+.section,
+.capture-area,
+.result-section {
+  margin-top: 18px;
+}
+
+.section-title {
+  margin: 0;
+
+  font-size: 18px;
+  font-weight: 800;
+
+  text-align: left;
+}
+
+.section-desc {
+  margin: 6px 0 12px;
+
+  font-size: 14px;
+  line-height: 1.45;
+
+  color: #4b5563;
+}
+
+
+/* =========================================================
+   카메라 영역
+   ========================================================= */
+
+.camera-area {
+  width: 100%;
+}
+
+.camera-stage {
+  position: relative;
+
+  width: 100%;
+
+  /*
+    카메라 화면을 항상 4:3으로 유지합니다.
+  */
+  aspect-ratio: 4 / 3;
+
+  overflow: hidden;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+
+  background: #111827;
+}
+
+
+/* 실시간 카메라 */
+
+#cameraVideo {
+  position: absolute;
+
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  /*
+    카메라 원본 비율이 16:9여도
+    4:3 화면을 빈 공간 없이 채우도록 중앙 크롭됩니다.
+  */
+  object-fit: cover;
+
+  /*
+    전면 카메라는 일반 셀카 앱처럼 거울 형태로 표시합니다.
+  */
+  transform: scaleX(-1);
+
+  background: #111827;
+}
+
+
+/* 선택된 배경/프레임 */
+
+.background-overlay {
+  position: absolute;
+
+  inset: 0;
+
+  z-index: 2;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+
+  pointer-events: none;
+
+  display: none;
+}
+
+
+/* 카메라 준비 및 오류 메시지 */
+
+.camera-message {
+  position: absolute;
+
+  inset: 0;
+
+  z-index: 5;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  padding: 20px;
+
+  text-align: center;
+
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.5;
+
+  color: #ffffff;
+
+  background: rgba(17, 24, 39, 0.65);
+}
+
+.camera-message.hidden {
+  display: none;
+}
+
+
+/* 촬영 플래시 */
+
+.camera-flash {
+  position: absolute;
+
+  inset: 0;
+
+  z-index: 10;
+
+  pointer-events: none;
+
+  background: #ffffff;
+
+  opacity: 0;
+}
+
+.camera-flash.active {
+  animation: flashEffect 180ms ease-out;
+}
+
+@keyframes flashEffect {
+  0% {
+    opacity: 0;
+  }
+
+  40% {
+    opacity: 0.8;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+
+/* =========================================================
+   배경 선택
+   ========================================================= */
+
+.background-list {
+  display: flex;
+
+  gap: 10px;
+
+  width: 100%;
+
+  overflow-x: auto;
+
+  padding: 2px 0 6px;
+
+  scrollbar-width: none;
+
+  -webkit-overflow-scrolling: touch;
+}
+
+.background-list::-webkit-scrollbar {
+  display: none;
+}
+
+
+/* 개별 배경 선택 버튼 */
+
+.background-item {
+  flex: 0 0 88px;
+
+  padding: 0;
+
+  overflow: hidden;
+
+  border: 2px solid #e5e7eb;
+  border-radius: 14px;
+
+  background: #ffffff;
+
+  cursor: pointer;
+}
+
+.background-item.selected {
+  border-color: #2563eb;
+}
+
+.background-item:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.35);
+  outline-offset: 2px;
+}
+
+
+/* 썸네일 */
+
+.background-thumbnail,
+.background-none {
+  display: block;
+
+  width: 100%;
+
+  aspect-ratio: 4 / 3;
+}
+
+.background-thumbnail {
+  object-fit: cover;
+}
+
+
+/* 배경 없음 버튼 */
+
+.background-none {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background: #f3f4f6;
+
+  color: #374151;
+
+  font-size: 14px;
+  font-weight: 700;
+}
+
+
+/* =========================================================
+   촬영 버튼
+   ========================================================= */
+
+.capture-area {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.capture-button {
+  width: 100%;
+
+  min-height: 56px;
+
+  border: none;
+  border-radius: 14px;
+
+  background: #2563eb;
+  color: #ffffff;
+
+  font-family: inherit;
+  font-size: 18px;
+  font-weight: 800;
+
+  cursor: pointer;
+}
+
+.capture-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.capture-button:not(:disabled):active {
+  transform: scale(0.98);
+}
+
+.capture-button:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.35);
+  outline-offset: 3px;
+}
+
+
+/* =========================================================
+   결과 영역
+   ========================================================= */
+
+.result-image-box {
+  margin-top: 12px;
+
+  overflow: hidden;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+
+  background: #f9fafb;
+}
+
+.result-image {
+  display: block;
+
+  width: 100%;
+
+  aspect-ratio: 4 / 3;
+
+  object-fit: cover;
+}
+
+.result-actions {
+  display: grid;
+
+  grid-template-columns: 1fr 1fr;
+
+  gap: 10px;
+
+  margin-top: 14px;
+}
+
+.main-button,
+.sub-button {
+  min-height: 52px;
+
+  border-radius: 14px;
+
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.main-button {
+  border: none;
+
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.sub-button {
+  border: 1px solid #d1d5db;
+
+  background: #ffffff;
+  color: #111827;
+}
+
+.main-button:active,
+.sub-button:active {
+  transform: scale(0.98);
+}
+
+.main-button:focus-visible,
+.sub-button:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.35);
+  outline-offset: 3px;
+}
+
+
+/* =========================================================
+   유틸리티
+   ========================================================= */
+
+.hidden {
+  display: none !important;
+}
+
+.hidden-canvas {
+  /*
+    Canvas는 화면에 표시하지 않고
+    촬영 결과 합성에만 사용합니다.
+  */
+  position: fixed;
+
+  left: -99999px;
+  top: -99999px;
+}
+
+
+/* =========================================================
+   작은 스마트폰 대응
+   ========================================================= */
+
+@media (max-width: 360px) {
+
+  .app {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .background-item {
+    flex-basis: 82px;
+  }
+
+  .section-title {
+    font-size: 17px;
+  }
+
+  .capture-button {
+    font-size: 17px;
+  }
+
+}
+
+
+/* =========================================================
+   모션 감소 접근성 설정
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+}

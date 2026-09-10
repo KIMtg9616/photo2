@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+
+  <!--
+    스마트폰 세로 화면을 우선으로 하는 반응형 설정입니다.
+    viewport-fit=cover는 iPhone의 노치/Dynamic Island 및 Safe Area를 고려합니다.
+  -->
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+  >
+
+  <meta name="theme-color" content="#ffffff">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+
+  <title>캐릭터 포토</title>
+
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+
+<body>
+
+  <main class="app">
+
+    <!-- =========================
+         상단 로고
+         ========================= -->
+    <header class="header">
+      <img
+        src="./assets/logo/logo.svg"
+        alt="사이트 로고"
+        class="logo"
+      >
+    </header>
+
+
+    <!-- =========================
+         카메라 영역
+         - 화면 비율은 4:3
+         - 전면 카메라 미리보기
+         - 선택한 정적 배경/프레임을 위에 표시
+         ========================= -->
+    <section class="camera-area">
+
+      <div id="cameraStage" class="camera-stage">
+
+        <video
+          id="cameraVideo"
+          autoplay
+          playsinline
+          muted
+        ></video>
+
+        <!--
+          1차 버전의 배경 이미지는 카메라 위에 겹쳐지는 정적 프레임입니다.
+          중앙이 투명한 PNG/WebP를 사용하면 인물이 가려지지 않습니다.
+        -->
+        <img
+          id="backgroundOverlay"
+          class="background-overlay"
+          alt=""
+          aria-hidden="true"
+        >
+
+        <!-- 촬영 순간 플래시 효과 -->
+        <div
+          id="cameraFlash"
+          class="camera-flash"
+          aria-hidden="true"
+        ></div>
+
+        <!-- 카메라 준비/오류 안내 -->
+        <div id="cameraMessage" class="camera-message">
+          카메라를 준비하고 있습니다.
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+         배경 선택
+         JS에서 선택 버튼을 자동 생성합니다.
+         ========================= -->
+    <section class="section">
+
+      <h2 class="section-title">
+        배경 선택
+      </h2>
+
+      <p class="section-desc">
+        원하는 배경을 선택하세요.
+      </p>
+
+      <div
+        id="backgroundList"
+        class="background-list"
+        role="list"
+        aria-label="배경 선택"
+      ></div>
+
+    </section>
+
+
+    <!-- =========================
+         촬영 버튼
+         카메라 준비 전에는 비활성화됩니다.
+         ========================= -->
+    <section class="capture-area">
+
+      <button
+        id="captureButton"
+        class="capture-button"
+        type="button"
+        disabled
+        aria-label="사진 촬영"
+      >
+        촬영하기
+      </button>
+
+    </section>
+
+
+    <!-- =========================
+         촬영 결과
+         촬영 완료 후에만 표시됩니다.
+         ========================= -->
+    <section
+      id="resultSection"
+      class="result-section hidden"
+    >
+
+      <h2 class="section-title">
+        촬영 결과
+      </h2>
+
+      <div class="result-image-box">
+        <img
+          id="resultImage"
+          class="result-image"
+          alt="촬영 결과 이미지"
+        >
+      </div>
+
+      <div class="result-actions">
+
+        <button
+          id="retryButton"
+          class="sub-button"
+          type="button"
+        >
+          다시 찍기
+        </button>
+
+        <button
+          id="downloadButton"
+          class="main-button"
+          type="button"
+        >
+          PNG 저장
+        </button>
+
+      </div>
+
+    </section>
+
+
+    <!--
+      실제 촬영 결과를 합성하는 숨겨진 Canvas입니다.
+      저장 결과는 기본 1440×1080 PNG입니다.
+    -->
+    <canvas
+      id="captureCanvas"
+      class="hidden-canvas"
+    ></canvas>
+
+  </main>
+
+  <script type="module" src="./js/app.js"></script>
+
+</body>
+</html>
