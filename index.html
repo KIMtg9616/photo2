@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
 
   <!--
-    스마트폰 세로 화면을 우선으로 하는 반응형 설정입니다.
-    viewport-fit=cover는 iPhone의 노치/Dynamic Island 및 Safe Area를 고려합니다.
+    viewport-fit=cover:
+    iPhone의 노치 / Dynamic Island / 홈 인디케이터 영역까지 고려하기 위해 사용
   -->
   <meta
     name="viewport"
@@ -13,6 +13,8 @@
   >
 
   <meta name="theme-color" content="#ffffff">
+
+  <!-- iOS에서 웹앱처럼 실행할 때 사용 -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
 
@@ -25,28 +27,29 @@
 
   <main class="app">
 
-    <!-- =========================
+    <!-- =========================================================
          상단 로고
-         ========================= -->
-    <header class="header">
+         ========================================================= -->
+    <header class="top-header">
       <img
         src="./assets/logo/logo.svg"
         alt="사이트 로고"
-        class="logo"
+        class="main-logo"
       >
     </header>
 
 
-    <!-- =========================
+    <!-- =========================================================
          카메라 영역
-         - 화면 비율은 4:3
-         - 전면 카메라 미리보기
-         - 선택한 정적 배경/프레임을 위에 표시
-         ========================= -->
-    <section class="camera-area">
+         - 화면 비율은 CSS에서 4:3으로 고정
+         - 실제 카메라 스트림은 video 태그에 표시
+         - 선택한 배경은 video 위에 overlay 형태로 합성
+         ========================================================= -->
+    <section class="camera-section">
 
       <div id="cameraStage" class="camera-stage">
 
+        <!-- 실시간 카메라 -->
         <video
           id="cameraVideo"
           autoplay
@@ -55,8 +58,13 @@
         ></video>
 
         <!--
-          1차 버전의 배경 이미지는 카메라 위에 겹쳐지는 정적 프레임입니다.
-          중앙이 투명한 PNG/WebP를 사용하면 인물이 가려지지 않습니다.
+          선택한 정적 배경 레이어
+
+          중요:
+          현재 1차 버전에서는 사람을 인식해 배경을 제거하는 것이 아닙니다.
+
+          따라서 이 배경 이미지는
+          중앙이 투명한 PNG/WebP 형태의 프레임 이미지로 사용하는 것이 가장 좋습니다.
         -->
         <img
           id="backgroundOverlay"
@@ -65,14 +73,14 @@
           aria-hidden="true"
         >
 
-        <!-- 촬영 순간 플래시 효과 -->
+        <!-- 촬영 순간 간단한 플래시 효과 -->
         <div
           id="cameraFlash"
           class="camera-flash"
           aria-hidden="true"
         ></div>
 
-        <!-- 카메라 준비/오류 안내 -->
+        <!-- 카메라 오류 / 준비 상태 표시 -->
         <div id="cameraMessage" class="camera-message">
           카메라를 준비하고 있습니다.
         </div>
@@ -82,19 +90,15 @@
     </section>
 
 
-    <!-- =========================
+    <!-- =========================================================
          배경 선택
-         JS에서 선택 버튼을 자동 생성합니다.
-         ========================= -->
-    <section class="section">
+         JS에서 버튼을 자동 생성함
+         ========================================================= -->
+    <section class="selector-section">
 
-      <h2 class="section-title">
-        배경 선택
+      <h2 class="selector-title">
+        배경을 선택해 주세요
       </h2>
-
-      <p class="section-desc">
-        원하는 배경을 선택하세요.
-      </p>
 
       <div
         id="backgroundList"
@@ -106,11 +110,10 @@
     </section>
 
 
-    <!-- =========================
+    <!-- =========================================================
          촬영 버튼
-         카메라 준비 전에는 비활성화됩니다.
-         ========================= -->
-    <section class="capture-area">
+         ========================================================= -->
+    <section class="capture-section">
 
       <button
         id="captureButton"
@@ -119,38 +122,42 @@
         disabled
         aria-label="사진 촬영"
       >
-        촬영하기
+        <span class="capture-button-inner"></span>
       </button>
+
+      <p class="capture-label">
+        촬영
+      </p>
 
     </section>
 
 
-    <!-- =========================
+    <!-- =========================================================
          촬영 결과
-         촬영 완료 후에만 표시됩니다.
-         ========================= -->
+         사진을 찍은 이후에만 표시
+         ========================================================= -->
     <section
       id="resultSection"
       class="result-section hidden"
     >
 
-      <h2 class="section-title">
+      <h2 class="result-title">
         촬영 결과
       </h2>
 
-      <div class="result-image-box">
+      <div class="result-image-wrapper">
         <img
           id="resultImage"
           class="result-image"
-          alt="촬영 결과 이미지"
+          alt="촬영된 사진"
         >
       </div>
 
-      <div class="result-actions">
+      <div class="result-buttons">
 
         <button
           id="retryButton"
-          class="sub-button"
+          class="secondary-button"
           type="button"
         >
           다시 찍기
@@ -158,7 +165,7 @@
 
         <button
           id="downloadButton"
-          class="main-button"
+          class="primary-button"
           type="button"
         >
           PNG 저장
@@ -169,10 +176,7 @@
     </section>
 
 
-    <!--
-      실제 촬영 결과를 합성하는 숨겨진 Canvas입니다.
-      저장 결과는 기본 1440×1080 PNG입니다.
-    -->
+    <!-- 실제 촬영 이미지를 만드는 숨겨진 Canvas -->
     <canvas
       id="captureCanvas"
       class="hidden-canvas"
@@ -180,6 +184,11 @@
 
   </main>
 
+
+  <!--
+    JavaScript 모듈의 시작점.
+    나머지 JS 파일은 app.js가 import합니다.
+  -->
   <script type="module" src="./js/app.js"></script>
 
 </body>
