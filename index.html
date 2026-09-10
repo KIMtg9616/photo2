@@ -5,11 +5,6 @@
 
   <meta charset="UTF-8">
 
-  <!--
-    스마트폰 화면 대응
-    viewport-fit=cover:
-    iPhone의 노치 / Dynamic Island / Safe Area 대응
-  -->
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1.0, viewport-fit=cover"
@@ -17,7 +12,6 @@
 
   <meta name="theme-color" content="#ffffff">
 
-  <!-- iOS 웹앱 대응 -->
   <meta
     name="apple-mobile-web-app-capable"
     content="yes"
@@ -30,7 +24,6 @@
 
   <title>캐릭터 포토</title>
 
-  <!-- CSS -->
   <link
     rel="stylesheet"
     href="./css/style.css"
@@ -41,10 +34,6 @@
 
 <body>
 
-
-  <!-- =========================================================
-       전체 앱
-       ========================================================= -->
 
   <main class="app">
 
@@ -66,7 +55,7 @@
 
 
     <!-- =========================================================
-         카메라 영역
+         카메라
          ========================================================= -->
 
     <section class="camera-section">
@@ -78,8 +67,6 @@
       >
 
 
-        <!-- 실시간 카메라 -->
-
         <video
           id="cameraVideo"
           autoplay
@@ -87,9 +74,6 @@
           muted
         ></video>
 
-
-
-        <!-- 선택한 정적 배경 이미지 -->
 
         <img
           id="backgroundOverlay"
@@ -99,18 +83,12 @@
         >
 
 
-
-        <!-- 촬영 플래시 -->
-
         <div
           id="cameraFlash"
           class="camera-flash"
           aria-hidden="true"
         ></div>
 
-
-
-        <!-- 카메라 상태 메시지 -->
 
         <div
           id="cameraMessage"
@@ -156,13 +134,7 @@
 
 
     <!-- =========================================================
-         촬영 / 카메라 전환 영역
-
-         가운데:
-         촬영 버튼
-
-         오른쪽:
-         전면 ↔ 후면 카메라 전환 버튼
+         촬영 / 카메라 전환
          ========================================================= -->
 
     <section class="capture-section">
@@ -171,12 +143,6 @@
       <div class="capture-controls">
 
 
-        <!--
-          왼쪽 빈 공간
-
-          촬영 버튼을 화면 정중앙에 유지하기 위해
-          오른쪽 전환 버튼과 같은 폭의 공간을 둡니다.
-        -->
         <div
           class="capture-control-spacer"
           aria-hidden="true"
@@ -184,9 +150,7 @@
 
 
 
-        <!-- =========================
-             촬영 버튼
-             ========================= -->
+        <!-- 촬영 -->
 
         <div class="capture-main-control">
 
@@ -217,9 +181,7 @@
 
 
 
-        <!-- =========================
-             카메라 전환 버튼
-             ========================= -->
+        <!-- 카메라 전환 -->
 
         <div class="camera-switch-control">
 
@@ -234,18 +196,12 @@
           >
 
 
-            <!--
-              별도의 이미지 파일 없이 사용할 수 있도록
-              SVG 아이콘을 HTML 내부에 직접 삽입합니다.
-            -->
-
             <svg
               class="camera-switch-icon"
               viewBox="0 0 24 24"
               aria-hidden="true"
             >
 
-              <!-- 카메라 몸체 -->
               <path
                 d="
                   M7.5 6.5
@@ -265,7 +221,6 @@
               ></path>
 
 
-              <!-- 중앙 렌즈 -->
               <circle
                 cx="12"
                 cy="12.5"
@@ -273,7 +228,6 @@
               ></circle>
 
 
-              <!-- 전환 화살표 -->
               <path
                 class="switch-arrow"
                 d="
@@ -330,7 +284,6 @@
       </h2>
 
 
-
       <div class="result-image-wrapper">
 
 
@@ -342,7 +295,6 @@
 
 
       </div>
-
 
 
       <div class="result-buttons">
@@ -357,7 +309,6 @@
           다시 찍기
 
         </button>
-
 
 
         <button
@@ -378,9 +329,7 @@
 
 
 
-    <!-- =========================================================
-         촬영 합성용 Canvas
-         ========================================================= -->
+    <!-- 촬영 합성용 Canvas -->
 
     <canvas
       id="captureCanvas"
@@ -393,8 +342,24 @@
 
 
   <!-- =========================================================
-       JavaScript
+       배경 선택 알림
+
+       평상시에는 숨겨져 있습니다.
+       배경을 선택하면 잠깐 나타났다가 자동으로 사라집니다.
+
+       role="status" / aria-live:
+       화면 읽기 프로그램에서도 선택 결과를 안내합니다.
        ========================================================= -->
+
+  <div
+    id="backgroundToast"
+    class="background-toast"
+    role="status"
+    aria-live="polite"
+    aria-atomic="true"
+  ></div>
+
+
 
   <script
     type="module"
