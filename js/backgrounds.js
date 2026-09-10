@@ -3,37 +3,73 @@ import { CONFIG } from "./config.js";
 
 /*
  ============================================================
- 배경 선택 관리
+ 선택창 관리
  ============================================================
+
+ 파일 이름은 기존 구조를 유지하기 위해 backgrounds.js를
+ 그대로 사용하지만, 이제 다음 네 모드를 모두 관리합니다.
+
+ 1. 배경
+ 2. 캐릭터
+ 3. 움직이는 배경 및 캐릭터
+ 4. AR
+
+ 현재 실제 카메라 합성은 기존 1차 기능인 '배경'만 수행합니다.
 */
 
 export class BackgroundManager {
 
   constructor(
     listElement,
-    overlayElement
+    overlayElement,
+    titleElement = null
   ) {
 
     this.listElement =
       listElement;
 
-
     this.overlayElement =
       overlayElement;
 
+    this.titleElement =
+      titleElement;
+
 
     /*
-      기본 배경
+      현재 선택 모드는 첫 번째 모드인 배경
     */
+    this.currentModeId =
+      CONFIG.selectionModes[0]?.id ||
+      "background";
 
-    this.selectedBackground =
-      CONFIG.backgrounds[0];
+
+    /*
+      모드별 선택 항목을 각각 기억합니다.
+
+      다른 모드로 갔다가 다시 배경으로 돌아와도
+      기존에 선택했던 배경이 유지됩니다.
+    */
+    this.selectedItems = {
+
+      background:
+        CONFIG.backgrounds[0] ||
+        null,
+
+      character:
+        null,
+
+      motion:
+        null,
+
+      ar:
+        null
+
+    };
 
 
     /*
       하단 선택 알림
     */
-
     this.toastElement =
       document.getElementById(
         "backgroundToast"
@@ -46,33 +82,161 @@ export class BackgroundManager {
   }
 
 
+  /*
+ ============================================================
+ 현재 모드 설정
+ ============================================================
+ */
+
+  setMode(modeId) {
+
+    const mode =
+      this.getModeConfig(modeId);
+
+
+    if (!mode) {
+
+      return;
+
+    }
+
+
+    this.currentModeId =
+      mode.id;
+
+
+    this.render();
+
+  }
+
 
   /*
  ============================================================
- 배경 선택 메뉴 생성
+ 현재 모드 정보
+ ============================================================
+ */
+
+  getModeConfig(
+    modeId = this.currentModeId
+  ) {
+
+    return (
+      CONFIG.selectionModes.find(
+        mode => mode.id === modeId
+      ) ||
+      CONFIG.selectionModes[0] ||
+      null
+    );
+
+  }
+
+
+  /*
+ ============================================================
+ 현재 모드의 항목 배열 가져오기
+ ============================================================
+ */
+
+  getCurrentItems() {
+
+    const mode =
+      this.getModeConfig();
+
+
+    if (!mode) {
+
+      return [];
+
+    }
+
+
+    const items =
+      CONFIG[mode.itemsKey];
+
+
+    return Array.isArray(items)
+      ? items
+      : [];
+
+  }
+
+
+  /*
+ ============================================================
+ 선택창 다시 그리기
  ============================================================
  */
 
   render() {
+
+    const mode =
+      this.getModeConfig();
+
+
+    if (!mode) {
+
+      return;
+
+    }
+
+
+    /*
+      제목 변경
+
+      예:
+      배경을 선택해 주세요
+      캐릭터를 선택해 주세요
+      움직이는 배경 및 캐릭터를 선택해 주세요
+      AR 효과를 선택해 주세요
+    */
+    if (this.titleElement) {
+
+      this.titleElement.textContent =
+        mode.title;
+
+    }
+
+
+    /*
+      스크린리더용 선택창 이름도 변경
+    */
+    this.listElement.setAttribute(
+      "aria-label",
+      mode.ariaLabel
+    );
 
 
     this.listElement.innerHTML =
       "";
 
 
-
-    CONFIG.backgrounds.forEach(
-      (
-        background,
-        index
-      ) => {
+    const items =
+      this.getCurrentItems();
 
 
-        /*
-         --------------------------------------------------------
-         배경 선택 버튼
-         --------------------------------------------------------
-        */
+    /*
+      아직 자료가 등록되지 않은 모드는
+      빈 선택창 대신 안내 메시지를 표시합니다.
+    */
+    if (items.length === 0) {
+
+      this.renderEmptyState(
+        mode.emptyText
+      );
+
+      return;
+
+    }
+
+
+    const selectedItem =
+      this.selectedItems[
+        this.currentModeId
+      ];
+
+
+    items.forEach(
+      item => {
 
         const button =
           document.createElement(
@@ -88,36 +252,32 @@ export class BackgroundManager {
           "background-item";
 
 
-        button.dataset.backgroundId =
-          background.id;
+        button.dataset.itemId =
+          item.id;
 
-
-        /*
-          화면에는 제목을 쓰지 않지만
-          스크린리더는 배경명을 읽을 수 있습니다.
-        */
 
         button.setAttribute(
           "aria-label",
-          `${background.name} 선택`
+          `${item.name} 선택`
         );
+
+
+        const isSelected =
+          Boolean(
+            selectedItem &&
+            selectedItem.id === item.id
+          );
 
 
         button.setAttribute(
           "aria-pressed",
-          index === 0
+          isSelected
             ? "true"
             : "false"
         );
 
 
-
-        /*
-          기본 선택 표시
-        */
-
-        if (index === 0) {
-
+        if (isSelected) {
 
           button.classList.add(
             "selected"
@@ -126,15 +286,13 @@ export class BackgroundManager {
         }
 
 
-
         /*
          --------------------------------------------------------
-         배경 없음
+         '없음' 항목
          --------------------------------------------------------
         */
 
-        if (!background.thumbnail) {
-
+        if (!item.thumbnail) {
 
           const noneBox =
             document.createElement(
@@ -157,18 +315,16 @@ export class BackgroundManager {
         }
 
 
-
         /*
          --------------------------------------------------------
          썸네일 이미지
-         --------------------------------------------------------
 
-         이곳에서는 고해상도 src가 아니라
-         저해상도 thumbnail 파일만 불러옵니다.
+         실제 고해상도 원본 src가 아니라
+         작은 thumbnail만 불러옵니다.
+         --------------------------------------------------------
         */
 
         else {
-
 
           const image =
             document.createElement(
@@ -180,43 +336,21 @@ export class BackgroundManager {
             "background-thumbnail";
 
 
-          /*
-            320×240 정도의 작은 WebP
-          */
-
           image.src =
-            background.thumbnail;
+            item.thumbnail;
 
-
-          /*
-            버튼에 aria-label이 있으므로
-            이미지 alt는 빈 값으로 둡니다.
-          */
 
           image.alt =
             "";
 
 
-          /*
-            화면에 가까워졌을 때만 로딩
-          */
-
           image.loading =
             "lazy";
 
 
-          /*
-            이미지 디코딩을 비동기로 수행하여
-            UI 멈춤을 줄입니다.
-          */
-
           image.decoding =
             "async";
 
-
-          /*
-            썸네일의 논리적 화면 비율
-          */
 
           image.width =
             320;
@@ -226,36 +360,23 @@ export class BackgroundManager {
             240;
 
 
-          /*
-            이미지 드래그 방지
-          */
-
           image.draggable =
             false;
 
-
-
-          /*
-            이미지 로딩 실패 처리
-          */
 
           image.addEventListener(
             "error",
             () => {
 
-
               image.style.display =
                 "none";
-
 
               button.classList.add(
                 "image-load-error"
               );
 
-
             }
           );
-
 
 
           button.appendChild(
@@ -265,36 +386,22 @@ export class BackgroundManager {
         }
 
 
-
-        /*
-         --------------------------------------------------------
-         배경 선택
-         --------------------------------------------------------
-        */
-
         button.addEventListener(
-
           "click",
-
           () => {
 
-
             this.select(
-              background,
+              item,
               button
             );
 
-
           }
-
         );
-
 
 
         this.listElement.appendChild(
           button
         );
-
 
       }
     );
@@ -302,28 +409,58 @@ export class BackgroundManager {
   }
 
 
+  /*
+ ============================================================
+ 자료가 없는 모드의 안내
+ ============================================================
+ */
+
+  renderEmptyState(message) {
+
+    const empty =
+      document.createElement(
+        "div"
+      );
+
+
+    empty.className =
+      "selector-empty";
+
+
+    empty.textContent =
+      message;
+
+
+    this.listElement.appendChild(
+      empty
+    );
+
+  }
+
 
   /*
  ============================================================
- 배경 선택
+ 항목 선택
  ============================================================
  */
 
   select(
-    background,
+    item,
     selectedButton
   ) {
 
-
-    this.selectedBackground =
-      background;
-
+    /*
+      현재 모드의 선택 상태 저장
+    */
+    this.selectedItems[
+      this.currentModeId
+    ] =
+      item;
 
 
     /*
-      기존 선택 상태 초기화
+      현재 선택창의 버튼 표시 초기화
     */
-
     const buttons =
       this.listElement.querySelectorAll(
         ".background-item"
@@ -332,7 +469,6 @@ export class BackgroundManager {
 
     buttons.forEach(
       button => {
-
 
         button.classList.remove(
           "selected"
@@ -344,15 +480,9 @@ export class BackgroundManager {
           "false"
         );
 
-
       }
     );
 
-
-
-    /*
-      새 선택 상태
-    */
 
     selectedButton.classList.add(
       "selected"
@@ -365,15 +495,51 @@ export class BackgroundManager {
     );
 
 
-
     /*
      ============================================================
-     배경 없음
+     현재 1차 실제 기능: 정적 배경
      ============================================================
+
+     캐릭터 / 움직임 / AR은 선택창 구조만 준비되어 있고
+     실제 레이어 합성은 각각의 개발 단계에서 연결합니다.
     */
 
-    if (!background.src) {
+    if (
+      this.currentModeId ===
+      "background"
+    ) {
 
+      this.applyBackground(
+        item
+      );
+
+      return;
+
+    }
+
+
+    /*
+      향후 기능 자료가 등록되었을 때의 공통 선택 알림
+    */
+    this.showToast(
+      `${item.name} 선택됨`
+    );
+
+  }
+
+
+  /*
+ ============================================================
+ 정적 배경 적용
+ ============================================================
+ */
+
+  applyBackground(background) {
+
+    /*
+      배경 없음
+    */
+    if (!background.src) {
 
       this.overlayElement.removeAttribute(
         "src"
@@ -394,21 +560,9 @@ export class BackgroundManager {
     }
 
 
-
     /*
-     ============================================================
-     실제 고해상도 원본 로딩
-
-     ★ 중요
-
-     여기에서야 비로소
-     static 폴더의 고해상도 이미지를 불러옵니다.
-
-     사이트 처음 접속 시에는
-     이 이미지가 다운로드되지 않습니다.
-     ============================================================
+      고해상도 원본은 실제로 선택했을 때만 로딩됩니다.
     */
-
     this.overlayElement.src =
       background.src;
 
@@ -417,11 +571,6 @@ export class BackgroundManager {
       "block";
 
 
-
-    /*
-      선택 이름 안내
-    */
-
     this.showToast(
       `${background.name} 배경을 선택했습니다.`
     );
@@ -429,15 +578,13 @@ export class BackgroundManager {
   }
 
 
-
   /*
  ============================================================
- 배경 선택 Toast
+ 하단 Toast
  ============================================================
  */
 
   showToast(message) {
-
 
     if (!this.toastElement) {
 
@@ -446,13 +593,7 @@ export class BackgroundManager {
     }
 
 
-
-    /*
-      기존 알림 타이머 제거
-    */
-
     if (this.toastTimer) {
-
 
       clearTimeout(
         this.toastTimer
@@ -465,50 +606,29 @@ export class BackgroundManager {
     }
 
 
-
-    /*
-      기존 표시 초기화
-    */
-
     this.toastElement.classList.remove(
       "show"
     );
 
-
-    /*
-      문구 입력
-    */
 
     this.toastElement.textContent =
       message;
 
 
     /*
-      애니메이션 재실행을 위한 reflow
+      같은 애니메이션을 연속 실행하기 위한 reflow
     */
-
     void this.toastElement.offsetWidth;
 
-
-    /*
-      표시
-    */
 
     this.toastElement.classList.add(
       "show"
     );
 
 
-
-    /*
-      1.5초 후 사라짐
-    */
-
     this.toastTimer =
       window.setTimeout(
-
         () => {
-
 
           this.toastElement.classList.remove(
             "show"
@@ -518,27 +638,40 @@ export class BackgroundManager {
           this.toastTimer =
             null;
 
-
         },
-
         1500
-
       );
 
   }
 
 
-
   /*
  ============================================================
- 현재 선택된 배경 정보
+ 현재 선택된 배경
  ============================================================
  */
 
   getSelectedBackground() {
 
+    return (
+      this.selectedItems.background ||
+      null
+    );
 
-    return this.selectedBackground;
+  }
+
+
+  /*
+ ============================================================
+ 향후 확장용: 모든 모드 선택값 반환
+ ============================================================
+ */
+
+  getSelectedItems() {
+
+    return {
+      ...this.selectedItems
+    };
 
   }
 
