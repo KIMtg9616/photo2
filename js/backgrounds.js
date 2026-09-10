@@ -23,7 +23,8 @@ export class BackgroundManager {
 
 
     /*
-      기본 배경
+      기본값:
+      config.js의 첫 번째 배경
     */
 
     this.selectedBackground =
@@ -31,7 +32,7 @@ export class BackgroundManager {
 
 
     /*
-      배경 선택 Toast 알림
+      배경 선택 Toast
     */
 
     this.toastElement =
@@ -41,10 +42,7 @@ export class BackgroundManager {
 
 
     /*
-      기존 Toast 타이머 저장
-
-      빠르게 여러 배경을 선택했을 때
-      이전 타이머와 충돌하지 않도록 사용합니다.
+      Toast 타이머
     */
 
     this.toastTimer =
@@ -63,9 +61,18 @@ export class BackgroundManager {
   render() {
 
 
+    /*
+      기존 목록 초기화
+    */
+
     this.listElement.innerHTML =
       "";
 
+
+
+    /*
+      config.js에 등록된 모든 배경 생성
+    */
 
     CONFIG.backgrounds.forEach(
       (
@@ -73,6 +80,12 @@ export class BackgroundManager {
         index
       ) => {
 
+
+        /*
+         ========================================================
+         배경 버튼
+         ========================================================
+        */
 
         const button =
           document.createElement(
@@ -93,8 +106,8 @@ export class BackgroundManager {
 
 
         /*
-          화면에는 배경명을 별도로 출력하지 않지만
-          접근성을 위해 버튼 설명은 유지합니다.
+          화면에는 제목을 표시하지 않지만
+          스크린리더에서는 배경 이름을 알 수 있습니다.
         */
 
         button.setAttribute(
@@ -105,14 +118,30 @@ export class BackgroundManager {
 
 
         /*
-          첫 번째 항목:
-          배경 없음
+          첫 번째 배경 기본 선택
         */
 
         if (index === 0) {
 
+
           button.classList.add(
             "selected"
+          );
+
+
+          button.setAttribute(
+            "aria-pressed",
+            "true"
+          );
+
+        }
+
+        else {
+
+
+          button.setAttribute(
+            "aria-pressed",
+            "false"
           );
 
         }
@@ -121,7 +150,7 @@ export class BackgroundManager {
 
         /*
          ========================================================
-         배경 없음 버튼
+         배경 없음
          ========================================================
         */
 
@@ -154,12 +183,6 @@ export class BackgroundManager {
          ========================================================
          이미지가 있는 배경
          ========================================================
-
-         중요:
-         여기에서는 SPACE / LAB / FESTIVAL 등의
-         텍스트를 별도로 생성하지 않습니다.
-
-         썸네일 이미지만 표시합니다.
         */
 
         else {
@@ -175,20 +198,113 @@ export class BackgroundManager {
             "background-thumbnail";
 
 
+          /*
+            원본 이미지를 그대로 사용합니다.
+
+            예:
+            1448×1086 PNG
+
+            하지만 CSS에서 화면 표시 크기를
+            104×78px로 제한합니다.
+          */
+
           image.src =
             background.thumbnail;
 
 
           image.alt =
-            background.name;
+            "";
 
+
+          /*
+            화면 밖에 있는 이미지는 필요할 때 로딩합니다.
+          */
 
           image.loading =
             "lazy";
 
 
+          /*
+            이미지 디코딩을 비동기로 처리합니다.
+
+            큰 PNG 이미지 때문에
+            메인 UI가 잠깐 멈추는 현상을 줄이는 데 도움이 됩니다.
+          */
+
+          image.decoding =
+            "async";
+
+
+          /*
+            썸네일은 우선순위를 낮춥니다.
+
+            카메라 실행 등 핵심 기능을 먼저 처리할 수 있게 합니다.
+          */
+
+          try {
+
+            image.fetchPriority =
+              "low";
+
+          }
+
+          catch (error) {
+
+            /*
+              일부 구형 브라우저에서는
+              fetchPriority를 지원하지 않아도 문제가 없습니다.
+            */
+
+          }
+
+
+          /*
+            레이아웃 계산 전에 브라우저가
+            썸네일 비율을 알 수 있도록 힌트 제공
+
+            CSS 실제 표시 크기는
+            104×78px입니다.
+          */
+
+          image.width =
+            104;
+
+
+          image.height =
+            78;
+
+
+          /*
+            이미지 드래그 방지
+          */
+
           image.draggable =
             false;
+
+
+
+          /*
+            이미지 로딩 실패 시
+            버튼 자체는 남겨두고 깨진 이미지 아이콘은 숨깁니다.
+          */
+
+          image.addEventListener(
+            "error",
+            () => {
+
+
+              image.style.display =
+                "none";
+
+
+              button.classList.add(
+                "image-load-error"
+              );
+
+
+            }
+          );
+
 
 
           button.appendChild(
@@ -201,7 +317,7 @@ export class BackgroundManager {
 
         /*
          ========================================================
-         배경 선택
+         클릭
          ========================================================
         */
 
@@ -223,6 +339,10 @@ export class BackgroundManager {
         );
 
 
+
+        /*
+          목록에 추가
+        */
 
         this.listElement.appendChild(
           button
@@ -248,13 +368,17 @@ export class BackgroundManager {
   ) {
 
 
+    /*
+      현재 선택 배경 저장
+    */
+
     this.selectedBackground =
       background;
 
 
 
     /*
-      모든 버튼의 선택 표시 제거
+      기존 선택 상태 제거
     */
 
     const buttons =
@@ -272,17 +396,29 @@ export class BackgroundManager {
         );
 
 
+        button.setAttribute(
+          "aria-pressed",
+          "false"
+        );
+
+
       }
     );
 
 
 
     /*
-      현재 선택 버튼 표시
+      새 선택 상태
     */
 
     selectedButton.classList.add(
       "selected"
+    );
+
+
+    selectedButton.setAttribute(
+      "aria-pressed",
+      "true"
     );
 
 
@@ -306,7 +442,7 @@ export class BackgroundManager {
 
 
       /*
-        선택 알림
+        하단 알림
       */
 
       this.showToast(
@@ -322,8 +458,13 @@ export class BackgroundManager {
 
     /*
      ============================================================
-     선택한 배경 표시
+     선택된 원본 배경 표시
      ============================================================
+
+     썸네일은 104×78px로 작게 표시하지만,
+     실제 카메라에는 원본 이미지를 그대로 사용합니다.
+
+     따라서 최종 촬영 품질은 낮아지지 않습니다.
     */
 
     this.overlayElement.src =
@@ -337,13 +478,7 @@ export class BackgroundManager {
 
     /*
      ============================================================
-     작은 선택 알림 표시
-
-     config.js의 name 값을 사용합니다.
-
-     예:
-     우주 → "우주 배경을 선택했습니다."
-     과학실 → "과학실 배경을 선택했습니다."
+     배경 선택 알림
      ============================================================
     */
 
@@ -359,17 +494,13 @@ export class BackgroundManager {
  ============================================================
  하단 Toast 알림
  ============================================================
-
- 화면 하단에 약 1.5초 동안 표시된 후
- 자동으로 사라집니다.
- ============================================================
  */
 
   showToast(message) {
 
 
     /*
-      Toast 요소가 없으면 실행하지 않습니다.
+      Toast HTML이 없다면 종료
     */
 
     if (!this.toastElement) {
@@ -381,10 +512,7 @@ export class BackgroundManager {
 
 
     /*
-      기존 타이머가 있다면 제거
-
-      사용자가 빠르게 여러 배경을 클릭해도
-      마지막 선택 기준으로 시간이 다시 시작됩니다.
+      이전 Toast 타이머 초기화
     */
 
     if (this.toastTimer) {
@@ -403,7 +531,7 @@ export class BackgroundManager {
 
 
     /*
-      이전 애니메이션 초기화
+      기존 표시 상태 초기화
     */
 
     this.toastElement.classList.remove(
@@ -413,7 +541,7 @@ export class BackgroundManager {
 
 
     /*
-      알림 문구 설정
+      새 메시지
     */
 
     this.toastElement.textContent =
@@ -422,8 +550,7 @@ export class BackgroundManager {
 
 
     /*
-      같은 요소에서 애니메이션을
-      반복 실행하기 위한 reflow
+      같은 애니메이션을 반복하기 위한 reflow
     */
 
     void this.toastElement.offsetWidth;
@@ -441,7 +568,7 @@ export class BackgroundManager {
 
 
     /*
-      1.5초 후 사라지기
+      1.5초 후 자동으로 숨김
     */
 
     this.toastTimer =
