@@ -73,7 +73,7 @@ export const CONFIG = {
     {
       id: "space",
       name: "우주",
-      src: "./assets/backgrounds/static/bg-space.webp",
+      src: "./assets/backgrounds/static/20years.png",
       thumbnail: "./assets/backgrounds/static/bg-space.webp"
     },
 
